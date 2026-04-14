@@ -1,0 +1,66 @@
+<footer class="footer">
+  <div class="footer-inner">
+    <!-- Grid -->
+    <div class="footer-grid">
+      <!-- Brand -->
+      <div class="footer-col">
+        <a routerLink="/home" class="footer-logo">
+          <!-- <div class="logo-icon">✂</div>
+          <span class="logo-text">QUATTRO</span> -->
+          <img src="images/quattro_logo.png" class="logo" alt="Logo" />
+        </a>
+        <p class="footer-desc">
+          Vaš omiljeni barbershop u Novom Sadu. Profesionalna usluga, moderni stilovi, opuštena
+          atmosfera.
+        </p>
+      </div>
+
+      <!-- Contact -->
+      <div class="footer-col">
+        <h3 class="footer-heading">Kontakt</h3>
+        <div class="contact-list">
+          <div class="contact-item">
+            <span class="contact-icon">📍</span>
+            Banatska 7, Novi Sad 21000
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">📞</span>
+            063 8170205
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">✉️</span>
+            info&#64;quattro.rs
+          </div>
+        </div>
+      </div>
+
+      <!-- Hours -->
+      <div class="footer-col">
+        <h3 class="footer-heading">Radno vreme</h3>
+        <div class="hours-list">
+          @for (h of hours; track h.day) {
+            <div class="hours-row" [class.closed]="h.time === 'Zatvoreno'">
+              <span>{{ h.day }}</span>
+              <span class="hours-time">{{ h.time }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div class="footer-map">
+      <iframe
+        title="Quattro Barbershop lokacija"
+        width="100%"
+        height="200"
+        loading="lazy"
+        src="https://www.openstreetmap.org/export/embed.html?bbox=19.805012941360477%2C45.261740454697126%2C19.81917500495911%2C45.268566778446164&amp;layer=mapnik&marker=45.265154,19.813435"
+        style="border: 1px solid black"
+      ></iframe>
+    </div>
+
+    <!-- Copyright -->
+    <div class="footer-bottom">© 2026 Quattro Barbershop. Sva prava zadržana.</div>
+  </div>
+</footer>

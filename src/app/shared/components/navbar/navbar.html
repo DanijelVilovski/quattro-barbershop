@@ -1,0 +1,68 @@
+<nav class="navbar">
+  <div class="navbar-inner">
+    <!-- Logo -->
+    <a routerLink="/home" class="logo">
+      <!-- <div class="logo-icon">✂</div>
+      <span class="logo-text">QUATTRO</span> -->
+      <img src="images/quattro_logo.png" class="logo" alt="Logo" />
+    </a>
+
+    <!-- Desktop Nav -->
+    <div class="nav-links">
+      <a
+        routerLink="/home"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-btn"
+      >
+        Početna
+      </a>
+      <a routerLink="/book-appointment" routerLinkActive="active" class="nav-btn"> Zakaži </a>
+
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/my-appointments" routerLinkActive="active" class="nav-btn"> Termini </a>
+      }
+
+      @if (!auth.isLoggedIn()) {
+        <a routerLink="/login" routerLinkActive="active" class="nav-btn"> Prijava </a>
+      }
+
+      @if (auth.isLoggedIn()) {
+        <button class="nav-btn logout-btn" (click)="logout()">
+          <span class="logout-label">Odjava</span>
+        </button>
+      }
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" (click)="menuOpen = !menuOpen">
+      @if (menuOpen) {
+        ✕
+      } @else {
+        ☰
+      }
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  @if (menuOpen) {
+    <div class="mobile-menu fade-in">
+      <a routerLink="/home" class="mobile-link" (click)="menuOpen = false"> Početna </a>
+      <a routerLink="/book-appointment" class="mobile-link" (click)="menuOpen = false">
+        Zakaži termin</a
+      >
+
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/my-appointments" class="mobile-link" (click)="menuOpen = false">
+          Moji termini
+        </a>
+        <button class="mobile-link mobile-logout" (click)="logout(); menuOpen = false">
+          Odjava
+        </button>
+      } @else {
+        <a routerLink="/login" class="mobile-link" (click)="menuOpen = false"> Prijava </a>
+        <a routerLink="/register" class="mobile-link" (click)="menuOpen = false"> Registracija </a>
+      }
+    </div>
+  }
+</nav>

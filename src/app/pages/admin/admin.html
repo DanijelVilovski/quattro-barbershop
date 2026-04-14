@@ -1,0 +1,694 @@
+<div class="admin-page fade-in">
+  <!-- ══════ HEADER ══════ -->
+  <div class="admin-header">
+    <!-- <div class="admin-logo" (click)="goHome()">
+        <img src="images/quattro_logo.png" class="logo" alt="Logo" />
+      </div> -->
+    <div>
+      <h1 class="admin-title">Admin <span class="text-orange">Dashboard</span></h1>
+      <p class="admin-subtitle">Zdravo, {{ currentBarber()?.name }}</p>
+    </div>
+    <button class="logout-btn" (click)="logout()">🚪 Odjava</button>
+  </div>
+
+  <!-- ══════ GLOBAL DURATION ══════ -->
+  <div class="card section-card">
+    <div class="duration-header">
+      <div>
+        <h3 class="card-title" style="margin: 0">⏱️ Podrazumevano trajanje termina</h3>
+        <p class="card-desc" style="margin: 0">Važi za sve dane, osim ako ne postavite drugačije</p>
+      </div>
+      <div class="duration-grid">
+        @for (d of bs.DURATIONS; track d) {
+          <button
+            class="dur-btn"
+            [class.active]="currentBarber()?.schedule?.globalDuration === d"
+            (click)="setGlobalDuration(d)"
+          >
+            {{ d }}m
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ TABS ══════ -->
+  <div class="tabs-bar scroll-hide">
+    @for (tab of tabs; track tab.id) {
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === tab.id"
+        (click)="activeTab.set(tab.id)"
+      >
+        <span class="tab-icon">{{ tab.icon }}</span>
+        <span class="tab-label">{{ tab.label }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!--  TAB: KALENDAR              -->
+  <!-- ════════════════════════════ -->
+  @if (activeTab() === 'calendar') {
+    <div class="slide-in">
+      <p class="tab-desc">
+        Kliknite na dane da ih izaberete, zatim konfigurišite sve odjednom. Dani odsutnosti i
+        zatvaranja se podešavaju u "Odsustva i zatvaranje lokala".
+      </p>
+
+      <div class="month-nav">
+        <button class="month-arrow" (click)="prevMonth()">←</button>
+        <h3 class="month-title">{{ bs.MONTH_NAMES[calMonth()] }} {{ calYear() }}</h3>
+        <button class="month-arrow" (click)="nextMonth()">→</button>
+      </div>
+
+      <div class="calendar-grid">
+        @for (d of ['Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub', 'Ned']; track d) {
+          <div class="cal-header">{{ d }}</div>
+        }
+        @for (day of calendarDays; track day.isoDate + $index) {
+          <div
+            class="cal-day"
+            [class.other-month]="!day.isCurrentMonth"
+            [class.today]="day.isToday"
+            [class.blocked]="day.blocked"
+            [class.selected]="isCalDaySelected(day.isoDate)"
+            [class.past]="
+              day.isCurrentMonth && !day.isToday && (day.date < today || day.dayOfWeek === 0)
+            "
+            [style.background]="day.isCurrentMonth ? getCalDayBg(day) : ''"
+            [style.border]="day.isCurrentMonth ? getCalDayBorder(day) : ''"
+            (click)="onCalendarDayClick(day)"
+          >
+            <div class="cal-day-num">{{ day.dayOfMonth }}</div>
+          </div>
+        }
+      </div>
+
+      <!-- Legend -->
+      <div class="cal-legend">
+        <span class="legend-item"><span class="legend-swatch legend-green"></span> Radi</span>
+        <span class="legend-item"><span class="legend-swatch legend-darkred"></span> Ne radi</span>
+        <span class="legend-item"
+          ><span class="legend-swatch legend-gray"></span> Nije konfigurisan</span
+        >
+      </div>
+
+      <!-- Selection actions -->
+      @if (selectedCalDays().size > 0) {
+        <div class="selection-bar scale-in">
+          <span class="selection-count">{{ selectedCalDays().size }} dana izabrano</span>
+          <div class="selection-actions">
+            <button
+              class="btn-outline"
+              style="padding: 8px 16px; font-size: 13px"
+              (click)="clearSelection()"
+            >
+              Poništi
+            </button>
+            <button
+              class="btn-primary"
+              style="padding: 8px 20px; font-size: 13px"
+              (click)="configureSelectedDays()"
+            >
+              Konfiguriši
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ════════════════════════════ -->
+  <!--  TAB: MOJ RASPORED          -->
+  <!-- ════════════════════════════ -->
+  @if (activeTab() === 'schedule') {
+    <div class="slide-in">
+      <div class="schedule-header">
+        <p class="tab-desc" style="margin: 0">Svi konfigurisani dani. Kliknite za brzu izmenu.</p>
+        <button
+          class="btn-primary"
+          style="padding: 10px 20px; font-size: 14px; white-space: nowrap"
+          (click)="openNewDayEditor()"
+        >
+          + Konfiguriši dan
+        </button>
+      </div>
+
+      @if (monthKeys.length === 0) {
+        <div class="card section-card" style="text-align: center; padding: 40px">
+          <p style="font-size: 40px; margin-bottom: 12px">📅</p>
+          <p style="color: var(--text-dim)">Nemate konfigurisanih dana.</p>
+        </div>
+      } @else {
+        <!-- Month navigation -->
+        <div class="month-nav">
+          <button
+            class="month-arrow"
+            [disabled]="scheduleMonthIndex() === 0"
+            [style.opacity]="scheduleMonthIndex() === 0 ? '0.3' : '1'"
+            (click)="prevScheduleMonth()"
+          >
+            ←
+          </button>
+          <h3 class="month-title">{{ getMonthLabel(currentScheduleMonth!) }}</h3>
+          <button
+            class="month-arrow"
+            [disabled]="scheduleMonthIndex() === monthKeys.length - 1"
+            [style.opacity]="scheduleMonthIndex() === monthKeys.length - 1 ? '0.3' : '1'"
+            (click)="nextScheduleMonth()"
+          >
+            →
+          </button>
+        </div>
+
+        <div class="schedule-list">
+          @for (item of scheduleByMonth[currentScheduleMonth!]; track item.iso + item.type) {
+            <div
+              class="schedule-item"
+              [class.clickable]="item.editable"
+              (click)="item.editable && openEditor(item.iso)"
+            >
+              <div class="schedule-item-left w-100">
+                <div
+                  class="schedule-date-badge"
+                  [style.background]="
+                    item.type === 'working' ? 'rgba(34,197,94,.1)' : 'rgba(239,68,68,.1)'
+                  "
+                  [style.color]="item.type === 'working' ? '#22c55e' : '#ef4444'"
+                >
+                  {{ getDateNum(item.iso) }}
+                </div>
+                <div class="w-100">
+                  <div class="flex-justied-between">
+                    <div class="schedule-item-title">{{ getDayLabel(item.iso) }}</div>
+                    <div class="schedule-item-right">
+                      <span
+                        class="status-badge"
+                        [style.background]="
+                          item.type === 'working' ? 'rgba(34,197,94,.12)' : 'rgba(239,68,68,.12)'
+                        "
+                        [style.color]="item.type === 'working' ? '#22c55e' : '#ef4444'"
+                      >
+                        {{ getStatusLabel(item.type) }}
+                      </span>
+                      @if (item.editable) {
+                        <span class="edit-icon">✏️</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="schedule-item-sub">
+                    {{ item.label }}{{ item.sublabel ? ' · ' + item.sublabel : '' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ════════════════════════════ -->
+  <!--  TAB: TERMINI               -->
+  <!-- ════════════════════════════ -->
+  @if (activeTab() === 'appointments') {
+    <div class="slide-in">
+      <h3 class="tab-heading">Zakazani termini</h3>
+
+      <!-- Date navigation -->
+      <div class="apt-date-nav">
+        <button class="month-arrow" (click)="prevAppointmentDay()">←</button>
+        <div class="apt-date-center">
+          <h4 class="apt-date-title">
+            {{ getDayNameFromIso(appointmentViewDate()) }},
+            {{ bs.formatIsoToDisplay(appointmentViewDate()) }}
+          </h4>
+          <input
+            class="input-field apt-date-picker"
+            type="date"
+            [ngModel]="appointmentViewDate()"
+            (ngModelChange)="appointmentViewDate.set($event)"
+          />
+        </div>
+        <button class="month-arrow" (click)="nextAppointmentDay()">→</button>
+      </div>
+
+      <!-- Slot grid -->
+      @if (getAppointmentDaySlots().length === 0) {
+        <div class="empty-card">Nema konfigurisanih termina za ovaj dan</div>
+      } @else {
+        <div class="apt-slots-grid">
+          @for (slot of getAppointmentDaySlots(); track slot) {
+            @let booked = isSlotBooked(slot);
+            <button
+              class="apt-slot"
+              [class.booked]="booked"
+              [class.available]="!booked"
+              (click)="onSlotClick(slot)"
+            >
+              {{ slot }}
+            </button>
+          }
+        </div>
+
+        <!-- Legend -->
+        <div class="apt-legend">
+          <span class="legend-item">
+            <span class="legend-swatch legend-gray"></span> Slobodan
+          </span>
+          <span class="legend-item">
+            <span class="legend-swatch legend-darkred"></span> Zakazan
+          </span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ════════════════════════════ -->
+  <!--  TAB: ODSUSTVA I ZATVARANJE -->
+  <!-- ════════════════════════════ -->
+  @if (activeTab() === 'timeoff') {
+    <div class="slide-in">
+      <!-- Barber Absences -->
+      <div class="card section-card">
+        <h3 class="card-title">🧑 Moja odsustva</h3>
+        <p class="card-desc">Godišnji odmor, bolovanje ili drugi razlozi odsutnosti.</p>
+
+        <div class="form-row-wrap">
+          <div class="form-group" style="flex: 1; min-width: 140px">
+            <label class="form-label">Od</label>
+            <input class="input-field" type="date" [(ngModel)]="newTimeOff.startDate" />
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 140px">
+            <label class="form-label">Do</label>
+            <input class="input-field" type="date" [(ngModel)]="newTimeOff.endDate" />
+          </div>
+        </div>
+        <div class="form-row-wrap" style="margin-top: 12px">
+          <div class="form-group" style="flex: 1; min-width: 140px">
+            <label class="form-label">Razlog</label>
+            <select class="input-field" [(ngModel)]="newTimeOff.reason">
+              @for (r of timeOffReasons; track r.value) {
+                <option [value]="r.value">{{ r.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 140px">
+            <label class="form-label">Napomena (opciono)</label>
+            <input class="input-field" [(ngModel)]="newTimeOff.note" placeholder="Opciono" />
+          </div>
+        </div>
+        <button
+          class="btn-primary"
+          style="margin-top: 16px; padding: 10px 24px; font-size: 14px"
+          [disabled]="!newTimeOff.startDate"
+          (click)="addTimeOff()"
+        >
+          + Dodaj
+        </button>
+
+        @if (offDaysList.length > 0) {
+          <div class="timeoff-list">
+            @for (item of offDaysList; track item.id) {
+              <div class="timeoff-item">
+                <div>
+                  <div class="timeoff-dates">
+                    {{ bs.formatIsoToDisplay(item.date) }}
+                    @if (item.date !== item.endDate) {
+                      — {{ bs.formatIsoToDisplay(item.endDate) }}
+                    }
+                  </div>
+                  <div class="timeoff-reason">
+                    {{ item.label }}{{ item.note ? ' · ' + item.note : '' }}
+                  </div>
+                </div>
+                <div class="timeoff-actions">
+                  <button class="icon-btn" (click)="startEditTimeOff(item)">✏️</button>
+                  <button class="icon-btn-delete" (click)="deleteOffDay(item)">✕</button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-hint">Nema zakazanih odsustava.</p>
+        }
+      </div>
+
+      <!-- Shop Closures -->
+      <div class="card section-card">
+        <h3 class="card-title">🏪 Zatvaranja lokala</h3>
+        <p class="card-desc">Praznici i dani kada je ceo lokal zatvoren.</p>
+
+        <div class="form-row-wrap">
+          <div class="form-group" style="flex: 1; min-width: 140px">
+            <label class="form-label">Datum</label>
+            <input class="input-field" type="date" [(ngModel)]="newClosure.date" />
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 140px">
+            <label class="form-label">Razlog</label>
+            <input
+              class="input-field"
+              [(ngModel)]="newClosure.reason"
+              placeholder="Npr. Državni praznik"
+            />
+          </div>
+        </div>
+        <button
+          class="btn-primary"
+          style="margin-top: 16px; padding: 10px 24px; font-size: 14px"
+          [disabled]="!newClosure.date || !newClosure.reason"
+          (click)="addClosure()"
+        >
+          + Dodaj
+        </button>
+
+        @if (bs.shopClosures().length > 0) {
+          <div class="timeoff-list">
+            @for (c of bs.shopClosures(); track c.id) {
+              <div class="timeoff-item">
+                <div>
+                  <div class="timeoff-dates">{{ bs.formatIsoToDisplay(c.date) }}</div>
+                  <div class="timeoff-reason">{{ c.reason }}</div>
+                </div>
+                <button class="icon-btn-delete" (click)="removeClosure(c.id)">✕</button>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-hint">Nema zatvaranja.</p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ════════════════════════════ -->
+  <!--  APPOINTMENT DETAIL MODAL   -->
+  <!-- ════════════════════════════ -->
+  @if (selectedAppointment()) {
+    <div class="modal-overlay" (click)="selectedAppointment.set(null)">
+      <div class="modal-card scale-in" style="max-width: 420px" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>📋 Detalji termina</h3>
+          <button class="close-btn" (click)="selectedAppointment.set(null)">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="apt-modal-detail">
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Klijent:</span>
+              <span class="apt-modal-value">{{ selectedAppointment()!.userName || 'Gost' }}</span>
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Datum:</span>
+              <span class="apt-modal-value">{{ selectedAppointment()!.date }}</span>
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Vreme:</span>
+              <span class="apt-modal-value">{{ selectedAppointment()!.time }}h</span>
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Usluge:</span>
+              <span class="apt-modal-value">{{ selectedAppointment()!.services.join(', ') }}</span>
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Cena:</span>
+              <span class="apt-modal-value" style="color: var(--orange); font-weight: 700">
+                {{ selectedAppointment()!.totalPrice }} din
+              </span>
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Email:</span>
+              <span class="apt-modal-value">{{ selectedAppointment()!.userEmail }}</span>
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Telefon:</span>
+              <span class="apt-modal-value">{{ selectedAppointment()!.userPhone }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end">
+          <button
+            class="btn-outline"
+            style="padding: 10px 24px; font-size: 14px"
+            (click)="selectedAppointment.set(null)"
+          >
+            Zatvori
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ════════════════════════════ -->
+  <!--  DAY EDITOR MODAL           -->
+  <!-- ════════════════════════════ -->
+  @if (showDayModal()) {
+    <div class="modal-overlay" (click)="showDayModal.set(false)">
+      <div class="modal-card scale-in" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            @if (selectedCalDays().size > 1) {
+              📅 {{ selectedCalDays().size }} dana
+            } @else if (editIsNew) {
+              📅 Konfiguriši dan
+            } @else {
+              📅 {{ bs.formatIsoToDisplay(editIso) }} — {{ getDayNameFromIso(editIso) }}
+            }
+          </h3>
+          <button class="close-btn" (click)="showDayModal.set(false)">✕</button>
+        </div>
+        <div class="modal-body">
+          <!-- Date picker for new day -->
+          @if (editIsNew) {
+            <div class="form-group" style="margin-bottom: 24px">
+              <label class="form-label" style="font-size: 14px; font-weight: 600"
+                >Izaberite datum</label
+              >
+              <input
+                class="input-field"
+                type="date"
+                [(ngModel)]="editIso"
+                style="font-size: 15px"
+              />
+              @if (editIso) {
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px">
+                  {{ getDayNameFromIso(editIso) }}, {{ bs.formatIsoToDisplay(editIso) }}
+                </p>
+              }
+            </div>
+          }
+
+          <!-- Active toggle -->
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px">
+            <div
+              class="check-box"
+              [class.checked]="editForm.active"
+              (click)="editForm.active = !editForm.active"
+            >
+              @if (editForm.active) {
+                ✓
+              }
+            </div>
+            <span style="font-weight: 600; font-size: 16px">Radni dan</span>
+          </div>
+
+          @if (editForm.active) {
+            <!-- Times -->
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px"
+            >
+              <div>
+                <label class="form-label">Početak</label>
+                <select class="input-field" [(ngModel)]="editForm.start">
+                  @for (t of timeOptions; track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Kraj</label>
+                <select class="input-field" [(ngModel)]="editForm.end">
+                  @for (t of timeOptions; track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <!-- Duration override -->
+            <div style="margin-bottom: 24px">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  margin-bottom: 10px;
+                "
+              >
+                <label style="font-size: 14px; font-weight: 600">Trajanje termina</label>
+                @if (editForm.duration) {
+                  <button class="link-btn" (click)="editForm.duration = null">
+                    Koristi globalno ({{ currentBarber()?.schedule?.globalDuration }}m)
+                  </button>
+                }
+              </div>
+              <div class="duration-grid">
+                @for (d of bs.DURATIONS; track d) {
+                  @let isActive =
+                    editForm.duration
+                      ? editForm.duration === d
+                      : currentBarber()?.schedule?.globalDuration === d;
+                  @let isGlobal =
+                    !editForm.duration && currentBarber()?.schedule?.globalDuration === d;
+                  <button
+                    class="dur-btn"
+                    [class.active]="isActive"
+                    (click)="
+                      editForm.duration = d === currentBarber()?.schedule?.globalDuration ? null : d
+                    "
+                  >
+                    {{ d }}m
+                    @if (isGlobal) {
+                      <span class="dur-global">globalno</span>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Breaks -->
+            <div style="margin-bottom: 16px">
+              <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px">Pauze</h4>
+              @for (brk of editForm.breaks; track $index; let bi = $index) {
+                <div class="break-row">
+                  <select class="input-field time-sm" [(ngModel)]="brk.start">
+                    @for (t of timeOptions; track t) {
+                      <option [value]="t">{{ t }}</option>
+                    }
+                  </select>
+                  <span class="time-dash">—</span>
+                  <select class="input-field time-sm" [(ngModel)]="brk.end">
+                    @for (t of timeOptions; track t) {
+                      <option [value]="t">{{ t }}</option>
+                    }
+                  </select>
+                  <button class="icon-btn-delete" (click)="editForm.breaks.splice(bi, 1)">✕</button>
+                </div>
+              }
+              <button
+                class="add-break-btn"
+                (click)="editForm.breaks.push({ start: '15:00', end: '15:30' })"
+              >
+                + Dodaj pauzu
+              </button>
+            </div>
+
+            <!-- Live preview -->
+            <div class="slot-preview">
+              <div class="slot-preview-label">
+                Pregled termina ({{ getEditPreviewSlots().length }})
+              </div>
+              <div class="slot-preview-grid">
+                @for (s of getEditPreviewSlots(); track s) {
+                  <div class="slot-preview-item">{{ s }}</div>
+                }
+                @if (getEditPreviewSlots().length === 0) {
+                  <span style="color: var(--text-dim); font-size: 13px">Nema termina</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <div>
+            @if (
+              selectedCalDays().size > 0 ||
+              (!editIsNew && currentBarber()?.schedule?.workDays?.[editIso])
+            ) {
+              <button class="delete-day-btn" (click)="deleteDay()">
+                ✕ Ukloni {{ selectedCalDays().size > 1 ? selectedCalDays().size + ' dana' : 'dan' }}
+              </button>
+            }
+          </div>
+          <div style="display: flex; gap: 12px">
+            <button
+              class="btn-outline"
+              style="padding: 10px 24px; font-size: 14px"
+              (click)="showDayModal.set(false)"
+            >
+              Otkaži
+            </button>
+            <button
+              class="btn-primary"
+              style="padding: 10px 24px; font-size: 14px"
+              [disabled]="editIsNew && !editIso && selectedCalDays().size === 0"
+              (click)="saveDay()"
+            >
+              Sačuvaj
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ════════════════════════════ -->
+  <!--  EDIT TIME OFF MODAL        -->
+  <!-- ════════════════════════════ -->
+  @if (editingTimeOff()) {
+    <div class="modal-overlay" (click)="editingTimeOff.set(null)">
+      <div class="modal-card scale-in" style="max-width: 480px" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>✏️ Izmeni odsutnost</h3>
+          <button class="close-btn" (click)="editingTimeOff.set(null)">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row-wrap" style="margin-bottom: 16px">
+            <div class="form-group" style="flex: 1; min-width: 140px">
+              <label class="form-label">Od</label>
+              <input class="input-field" type="date" [(ngModel)]="editingTimeOff()!.startDate" />
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 140px">
+              <label class="form-label">Do</label>
+              <input class="input-field" type="date" [(ngModel)]="editingTimeOff()!.endDate" />
+            </div>
+          </div>
+          <div class="form-row-wrap">
+            <div class="form-group" style="flex: 1; min-width: 140px">
+              <label class="form-label">Razlog</label>
+              <select class="input-field" [(ngModel)]="editingTimeOff()!.reason">
+                @for (r of timeOffReasons; track r.value) {
+                  <option [value]="r.value">{{ r.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 140px">
+              <label class="form-label">Napomena</label>
+              <input
+                class="input-field"
+                [(ngModel)]="editingTimeOff()!.note"
+                placeholder="Opciono"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end">
+          <button
+            class="btn-outline"
+            style="padding: 10px 24px; font-size: 14px"
+            (click)="editingTimeOff.set(null)"
+          >
+            Otkaži
+          </button>
+          <button
+            class="btn-primary"
+            style="padding: 10px 24px; font-size: 14px"
+            (click)="saveEditTimeOff()"
+          >
+            Sačuvaj
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

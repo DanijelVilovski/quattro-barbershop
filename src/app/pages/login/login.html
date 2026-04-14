@@ -1,0 +1,57 @@
+<div class="auth-page fade-in">
+  <div class="auth-card">
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="auth-icon">👤</div>
+      <h1 class="auth-title">Prijava</h1>
+      <p class="auth-subtitle">Dobrodošli nazad</p>
+    </div>
+
+    <!-- Form -->
+    <div class="auth-form">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input
+          class="input-field"
+          type="email"
+          [(ngModel)]="email"
+          placeholder="email@primer.com"
+          (keyup.enter)="login()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Lozinka</label>
+        <div class="password-wrap">
+          <input
+            class="input-field"
+            [type]="showPass() ? 'text' : 'password'"
+            [(ngModel)]="password"
+            placeholder="••••••••"
+            (keyup.enter)="login()"
+          />
+          <button class="pass-toggle" (click)="showPass.set(!showPass())">
+            {{ showPass() ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      </div>
+
+      <button
+        class="btn-primary auth-submit"
+        (click)="login()"
+        [disabled]="!email || !password"
+      >
+        Prijavite se
+      </button>
+
+      <p class="auth-switch">
+        Nemate nalog?
+        <a routerLink="/register" class="link-orange">Registrujte se</a>
+      </p>
+
+      <div class="admin-link">
+        <a routerLink="/admin-login" class="admin-btn"> 🛡️ Admin pristup </a>
+      </div>
+    </div>
+  </div>
+</div>

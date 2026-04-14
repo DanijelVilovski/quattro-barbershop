@@ -1,0 +1,79 @@
+<!-- ════════ HERO ════════ -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-content fade-in">
+    <div class="hero-badge">
+      <span class="hero-badge-icon">💈</span>PREMIUM BARBERSHOP<span class="hero-badge-icon"
+        >💈</span
+      >
+    </div>
+    <h1 class="hero-title">Stil koji <span class="text-orange">govori</span> umesto tebe</h1>
+    <p class="hero-subtitle">Vaš omiljeni barbershop u Novom Sadu.</p>
+    <a routerLink="/book-appointment" class="btn-primary hero-cta">
+      Zakaži termin
+      <span class="cta-arrow">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- ════════ SERVICES ════════ -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Naše <span class="text-orange">usluge</span></h2>
+    <p class="section-subtitle">Izaberite šta vam treba — mi ćemo se pobrinuti za ostalo</p>
+    <div class="services-grid">
+      @for (service of barberService.SERVICES; track service.id) {
+        <div class="service-card hover-lift">
+          <div class="service-icon">{{ service.icon }}</div>
+          <h3 class="service-name">{{ service.name }}</h3>
+          <p class="service-price">{{ service.price }} RSD</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ════════ BARBERS ════════ -->
+<section class="section barbers-section">
+  <div class="container">
+    <h2 class="section-title">Naši <span class="text-orange">barberi</span></h2>
+    <p class="section-subtitle">Iskusni profesionalci koji znaju svoj posao</p>
+    <div class="barbers-grid">
+      @for (barber of barberService.barbers(); track barber.id) {
+        <div class="barber-card hover-lift">
+          <div
+            class="barber-avatar-wrap"
+            [style.background]="
+              'linear-gradient(135deg, ' + barber.color + '22, ' + barber.color + '08)'
+            "
+          >
+            <div
+              class="barber-avatar"
+              [style.background]="
+                'linear-gradient(135deg, ' + barber.color + ', ' + barber.color + '88)'
+              "
+            >
+              {{ barber.name[0] }}
+            </div>
+          </div>
+          <div class="barber-info">
+            <h3 class="barber-name">{{ barber.name }}</h3>
+            <p class="barber-role" [style.color]="barber.color">{{ barber.role }}</p>
+            <p class="barber-desc">Profesionalno šišanje i oblikovanje</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ════════ CTA ════════ -->
+<section class="section cta-section">
+  <div class="container" style="text-align: center">
+    <h2 class="section-title">Spreman za <span class="text-orange">novi look</span>?</h2>
+    <p class="section-subtitle" style="margin-bottom: 32px">
+      Zakaži termin u par klikova — brzo, lako i pouzdano
+    </p>
+    <a routerLink="/book-appointment" class="btn-primary hero-cta"> Zakaži odmah </a>
+  </div>
+</section>

@@ -1,0 +1,61 @@
+<div class="appointments-page fade-in">
+  <h1 class="page-title">Moji <span class="text-orange">termini</span></h1>
+  <p class="page-subtitle">Pregled i upravljanje vašim rezervacijama</p>
+
+  @if (myAppointments().length === 0) {
+    <!-- Empty state -->
+    <div class="empty-state">
+      <div class="empty-icon">📅</div>
+      <p class="empty-text">Nemate zakazanih termina</p>
+      <a routerLink="/book-appointment" class="btn-primary empty-cta"> Zakaži termin </a>
+    </div>
+  } @else {
+    <!-- Appointment list -->
+    <div class="appointments-list">
+      @for (apt of myAppointments(); track apt.id) {
+        <div class="apt-card scale-in">
+          <!-- Left: Info -->
+          <div class="apt-info">
+            <div class="apt-barber">
+              <span class="apt-barber-icon">👤</span>
+              {{ getBarberName(apt.barberId) }}
+            </div>
+
+            <div class="apt-details">
+              <div class="apt-detail">
+                <span class="detail-icon">📅</span>
+                {{ apt.date }}
+              </div>
+              <div class="apt-detail">
+                <span class="detail-icon">🕐</span>
+                {{ apt.time }}h
+              </div>
+              <div class="apt-detail">
+                <span class="detail-icon">✂️</span>
+                {{ apt.services.join(', ') }}
+              </div>
+              <div class="apt-detail">
+                <span class="detail-icon">💰</span>
+                <span class="apt-price">{{ apt.totalPrice }} RSD</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Actions -->
+          <div class="apt-actions">
+            @if (canCancel(apt)) {
+              <button class="cancel-btn" (click)="cancel(apt.id)">Otkaži</button>
+            } @else {
+              <span class="cancel-info"> ⚠️ Nije moguće otkazivanje </span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Book another -->
+    <div class="book-more">
+      <a routerLink="/book-appointment" class="btn-outline book-more-btn"> + Zakaži novi termin </a>
+    </div>
+  }
+</div>

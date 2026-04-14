@@ -1,0 +1,130 @@
+.footer {
+  background: #0a0a0a;
+  border-top: 1px solid var(--border);
+  margin-top: 60px;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 50px 20px 30px;
+}
+
+/* ── Grid ── */
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.footer-col {
+  min-width: 0;
+}
+
+/* ── Logo ── */
+.footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: white;
+  margin-bottom: 16px;
+}
+
+.logo-icon {
+  background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.logo-text {
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.footer-desc {
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* ── Heading ── */
+.footer-heading {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--orange);
+}
+
+/* ── Contact ── */
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.contact-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Hours ── */
+.hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hours-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.hours-row.closed {
+  color: var(--red);
+}
+
+.hours-time {
+  font-weight: 500;
+}
+
+/* ── Map ── */
+.footer-map {
+  border-radius: 12px;
+  overflow: hidden;
+  height: 200px;
+  margin-bottom: 30px;
+
+  iframe {
+    border: 0;
+    filter: grayscale(0.8) contrast(1.1);
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* ── Bottom ── */
+.footer-bottom {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 13px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}

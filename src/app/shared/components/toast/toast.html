@@ -1,0 +1,16 @@
+@if (toastService.toast(); as t) {
+  <div
+    class="toast fade-in"
+    [class.toast-success]="t.type === 'success'"
+    [class.toast-error]="t.type === 'error'"
+  >
+    <span class="toast-icon">
+      @if (t.type === 'success') {
+        ✓
+      } @else {
+        ⚠
+      }
+    </span>
+    <span>{{ t.message }}</span>
+  </div>
+}
