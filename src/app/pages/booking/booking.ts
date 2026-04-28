@@ -43,10 +43,12 @@ export class BookingComponent implements OnInit {
 
   totalPrice = computed(() =>
     this.selectedServices().reduce((sum, id) => {
-      const s = this.barberService.SERVICES.find((sv) => sv.id === id);
+      const s = this.barberService.ALL_SERVICES.find((sv) => sv.id === id);
       return sum + (s?.price ?? 0);
     }, 0),
   );
+
+  isSubmitting = signal(false);
 
   formIme = '';
   formPrezime = '';
@@ -96,14 +98,18 @@ export class BookingComponent implements OnInit {
   selectDay(index: number) {
     this.selectedDayIndex.set(index);
     this.step.set(2);
+    window.scrollTo(0, 0);
   }
   selectBarber(barber: Barber) {
     this.selectedBarber.set(barber);
+    this.selectedServices.set([]);
     this.step.set(3);
+    window.scrollTo(0, 0);
   }
   selectTime(time: string) {
     this.selectedTime.set(time);
     this.step.set(4);
+    window.scrollTo(0, 0);
   }
 
   goBack() {
@@ -118,12 +124,16 @@ export class BookingComponent implements OnInit {
       this.selectedTime.set(null);
       this.step.set(3);
     }
+    window.scrollTo(0, 0);
   }
 
   toggleService(id: number) {
-    this.selectedServices.update((list) =>
-      list.includes(id) ? list.filter((s) => s !== id) : [...list, id],
-    );
+    const group = this.barberService.getServiceGroup(id);
+    this.selectedServices.update((list) => {
+      if (list.includes(id)) return list.filter((s) => s !== id);
+      const filtered = group ? list.filter((s) => !group.includes(s)) : list;
+      return [...filtered, id];
+    });
   }
 
   prefillForm() {
@@ -150,22 +160,38 @@ export class BookingComponent implements OnInit {
       this.toast.error('Molimo popunite sva obavezna polja');
       return;
     }
+
     const day = this.selectedDay()!;
     const barber = this.selectedBarber()!;
+    const email = this.formEmail.trim();
 
-    await this.bookingService.createAppointment({
-      barberId: barber.id,
-      date: day.dateStr,
-      time: this.selectedTime()!,
-      services: this.selectedServices().map(
-        (id) => this.barberService.SERVICES.find((s) => s.id === id)!.name,
-      ),
-      totalPrice: this.totalPrice(),
-      userName: `${this.formIme} ${this.formPrezime}`.trim(),
-      userEmail: this.formEmail,
-      userPhone: this.formTelefon,
-    });
+    const appointmentsOnDay = this.bookingService
+      .getUserAppointments(email)
+      .filter((a) => a.date === day.dateStr);
 
-    this.router.navigate([this.auth.isLoggedIn() ? '/my-appointments' : '/home']);
+    if (appointmentsOnDay.length >= 2) {
+      this.toast.error('Nije moguće zakazati više od 2 termina u jednom danu');
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    try {
+      await this.bookingService.createAppointment({
+        barberId: barber.id,
+        date: day.dateStr,
+        time: this.selectedTime()!,
+        services: this.selectedServices().map(
+          (id) => this.barberService.ALL_SERVICES.find((s) => s.id === id)!.name,
+        ),
+        totalPrice: this.totalPrice(),
+        userName: `${this.formIme} ${this.formPrezime}`.trim(),
+        userEmail: email,
+        userPhone: this.formTelefon,
+      });
+
+      this.router.navigate([this.auth.isLoggedIn() ? '/my-appointments' : '/home']);
+    } finally {
+      this.isSubmitting.set(false);
+    }
   }
 }

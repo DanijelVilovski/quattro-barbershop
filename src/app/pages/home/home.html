@@ -9,6 +9,7 @@
     </div>
     <h1 class="hero-title">Stil koji <span class="text-orange">govori</span> umesto tebe</h1>
     <p class="hero-subtitle">Vaš omiljeni barbershop u Novom Sadu.</p>
+
     <a routerLink="/book-appointment" class="btn-primary hero-cta">
       Zakaži termin
       <span class="cta-arrow">→</span>
@@ -16,28 +17,11 @@
   </div>
 </section>
 
-<!-- ════════ SERVICES ════════ -->
+<!-- ════════ SERVICES + BARBERS ════════ -->
 <section class="section">
   <div class="container">
     <h2 class="section-title">Naše <span class="text-orange">usluge</span></h2>
     <p class="section-subtitle">Izaberite šta vam treba — mi ćemo se pobrinuti za ostalo</p>
-    <div class="services-grid">
-      @for (service of barberService.SERVICES; track service.id) {
-        <div class="service-card hover-lift">
-          <div class="service-icon">{{ service.icon }}</div>
-          <h3 class="service-name">{{ service.name }}</h3>
-          <p class="service-price">{{ service.price }} RSD</p>
-        </div>
-      }
-    </div>
-  </div>
-</section>
-
-<!-- ════════ BARBERS ════════ -->
-<section class="section barbers-section">
-  <div class="container">
-    <h2 class="section-title">Naši <span class="text-orange">barberi</span></h2>
-    <p class="section-subtitle">Iskusni profesionalci koji znaju svoj posao</p>
     <div class="barbers-grid">
       @for (barber of barberService.barbers(); track barber.id) {
         <div class="barber-card hover-lift">
@@ -59,7 +43,18 @@
           <div class="barber-info">
             <h3 class="barber-name">{{ barber.name }}</h3>
             <p class="barber-role" [style.color]="barber.color">{{ barber.role }}</p>
-            <p class="barber-desc">Profesionalno šišanje i oblikovanje</p>
+            <p class="barber-duration">
+              Trajanje termina:
+              <span [style.color]="barber.color">{{ barber.globalDuration }} min</span>
+            </p>
+            <ul class="barber-services">
+              @for (service of barberService.getServicesForBarber(barber.id); track service.id) {
+                <li class="barber-service-item">
+                  <span class="barber-service-name">{{ service.name }}</span>
+                  <span class="barber-service-price">{{ service.price }} RSD</span>
+                </li>
+              }
+            </ul>
           </div>
         </div>
       }

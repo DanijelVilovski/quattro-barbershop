@@ -1,6 +1,6 @@
 <div class="booking-page fade-in">
   <h1 class="page-title">Zakaži <span class="text-orange">termin</span></h1>
-  <p class="page-subtitle">Izaberi dan, berbera i vreme — gotovo za 30 sekundi</p>
+  <p class="page-subtitle">Izaberi dan, barbera i vreme — gotovo za 30 sekundi</p>
 
   <!-- ══════ STEP INDICATORS ══════ -->
   <div class="steps-bar">
@@ -58,7 +58,7 @@
       <div class="context-bar">
         <span>📅 {{ selectedDay()!.dayName }}, {{ selectedDay()!.dateStr }}</span>
       </div>
-      <h3 class="step-title">Izaberite berbera</h3>
+      <h3 class="step-title">Izaberite barbera</h3>
       <div class="barber-grid">
         @for (barber of barberService.barbers(); track barber.id) {
           @let slotCount = getBarberSlotCount(barber);
@@ -126,7 +126,10 @@
 
       <h3 class="step-title" style="margin-top: 24px">Izaberite usluge</h3>
       <div class="services-list">
-        @for (service of barberService.SERVICES; track service.id) {
+        @for (
+          service of barberService.getServicesForBarber(selectedBarber()!.id);
+          track service.id
+        ) {
           <div
             class="service-row"
             [class.selected]="selectedServices().includes(service.id)"
@@ -137,7 +140,6 @@
                 ✓
               }
             </div>
-            <span class="service-icon">{{ service.icon }}</span>
             <span class="service-name">{{ service.name }}</span>
             <span class="service-price">{{ service.price }} RSD</span>
           </div>
@@ -184,8 +186,12 @@
         <input class="input-field" [(ngModel)]="formTelefon" placeholder="063 1234567" />
       </div>
 
-      <button class="btn-primary submit-btn" [disabled]="!canSubmit()" (click)="submit()">
-        Potvrdi termin — {{ totalPrice() }} RSD
+      <button
+        class="btn-primary submit-btn"
+        [disabled]="!canSubmit() || isSubmitting()"
+        (click)="submit()"
+      >
+        {{ isSubmitting() ? 'Zakazivanje...' : 'Potvrdi termin — ' + totalPrice() + ' RSD' }}
       </button>
     </div>
   }

@@ -74,7 +74,7 @@
             [class.blocked]="day.blocked"
             [class.selected]="isCalDaySelected(day.isoDate)"
             [class.past]="
-              day.isCurrentMonth && !day.isToday && (day.date < today || day.dayOfWeek === 0)
+              day.isCurrentMonth && (day.dayOfWeek === 0 || (!day.isToday && day.date < today))
             "
             [style.background]="day.isCurrentMonth ? getCalDayBg(day) : ''"
             [style.border]="day.isCurrentMonth ? getCalDayBorder(day) : ''"
@@ -166,8 +166,9 @@
           @for (item of scheduleByMonth[currentScheduleMonth!]; track item.iso + item.type) {
             <div
               class="schedule-item"
-              [class.clickable]="item.editable"
-              (click)="item.editable && openEditor(item.iso)"
+              [class.clickable]="item.editable && item.iso >= todayIso"
+              [class.past-item]="item.iso < todayIso"
+              (click)="item.editable && item.iso >= todayIso && openEditor(item.iso)"
             >
               <div class="schedule-item-left w-100">
                 <div
@@ -244,7 +245,8 @@
             <button
               class="apt-slot"
               [class.booked]="booked"
-              [class.available]="!booked"
+              [class.available]="!booked && !isViewDatePast"
+              [class.past-slot]="isViewDatePast"
               (click)="onSlotClick(slot)"
             >
               {{ slot }}
@@ -396,11 +398,17 @@
           <div class="apt-modal-detail">
             <div class="apt-modal-row">
               <span class="apt-modal-label">Klijent:</span>
-              <input class="input-field apt-modal-input" [(ngModel)]="bookingName" placeholder="Ime klijenta" />
+              <input
+                class="input-field apt-modal-input"
+                [(ngModel)]="bookingName"
+                placeholder="Ime klijenta"
+              />
             </div>
             <div class="apt-modal-row">
               <span class="apt-modal-label">Datum:</span>
-              <span class="apt-modal-value">{{ bs.formatIsoToDisplay(appointmentViewDate()) }}</span>
+              <span class="apt-modal-value">{{
+                bs.formatIsoToDisplay(appointmentViewDate())
+              }}</span>
             </div>
             <div class="apt-modal-row">
               <span class="apt-modal-label">Vreme:</span>
@@ -408,15 +416,28 @@
             </div>
             <div class="apt-modal-row">
               <span class="apt-modal-label">Email:</span>
-              <input class="input-field apt-modal-input" [(ngModel)]="bookingEmail" placeholder="Email" type="email" />
+              <input
+                class="input-field apt-modal-input"
+                [(ngModel)]="bookingEmail"
+                placeholder="Email"
+                type="email"
+              />
             </div>
             <div class="apt-modal-row">
               <span class="apt-modal-label">Telefon:</span>
-              <input class="input-field apt-modal-input" [(ngModel)]="bookingPhone" placeholder="Telefon" type="tel" />
+              <input
+                class="input-field apt-modal-input"
+                [(ngModel)]="bookingPhone"
+                placeholder="Telefon"
+                type="tel"
+              />
             </div>
-            <div class="apt-modal-row" style="flex-direction: column; align-items: flex-start; gap: 10px">
+            <div
+              class="apt-modal-row"
+              style="flex-direction: column; align-items: flex-start; gap: 10px"
+            >
               <span class="apt-modal-label">Usluge:</span>
-              @for (svc of bs.SERVICES; track svc.id) {
+              @for (svc of currentBarberServices; track svc.id) {
                 <label class="booking-service-row">
                   <input
                     type="checkbox"
@@ -424,7 +445,7 @@
                     [checked]="bookingServices().has(svc.id)"
                     (change)="toggleBookingService(svc.id)"
                   />
-                  <span>{{ svc.icon }} {{ svc.name }}</span>
+                  <span>{{ svc.name }}</span>
                   <span class="booking-service-price">{{ svc.price }} din</span>
                 </label>
               }
@@ -448,9 +469,10 @@
           <button
             class="btn-primary"
             style="padding: 10px 24px; font-size: 14px"
+            [disabled]="submittingBooking()"
             (click)="submitBooking()"
           >
-            Zakaži
+            {{ submittingBooking() ? 'Zakazivanje...' : 'Zakaži' }}
           </button>
         </div>
       </div>
@@ -687,8 +709,8 @@
               selectedCalDays().size > 0 ||
               (!editIsNew && currentBarber()?.schedule?.workDays?.[editIso])
             ) {
-              <button class="delete-day-btn" (click)="deleteDay()">
-                ✕ Ukloni {{ selectedCalDays().size > 1 ? selectedCalDays().size + ' dana' : 'dan' }}
+              <button class="delete-day-btn" [disabled]="deletingDay()" (click)="deleteDay()">
+                {{ deletingDay() ? 'Uklanjanje...' : ('✕ Ukloni ' + (selectedCalDays().size > 1 ? selectedCalDays().size + ' dana' : 'dan')) }}
               </button>
             }
           </div>
@@ -703,10 +725,10 @@
             <button
               class="btn-primary"
               style="padding: 10px 24px; font-size: 14px"
-              [disabled]="editIsNew && !editIso && selectedCalDays().size === 0"
+              [disabled]="savingDay() || (editIsNew && !editIso && selectedCalDays().size === 0)"
               (click)="saveDay()"
             >
-              Sačuvaj
+              {{ savingDay() ? 'Čuvanje...' : 'Sačuvaj' }}
             </button>
           </div>
         </div>

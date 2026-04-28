@@ -373,6 +373,11 @@
       border-color: var(--border-hover);
     }
   }
+
+  &.past-item {
+    opacity: 0.45;
+    cursor: default;
+  }
 }
 
 .schedule-item-left {
@@ -570,6 +575,16 @@
       color: var(--orange);
       background: var(--orange-glow);
       transform: scale(1.05);
+    }
+  }
+
+  &.past-slot {
+    opacity: 0.3;
+    cursor: default;
+
+    &:hover {
+      transform: none;
+      filter: none;
     }
   }
 }

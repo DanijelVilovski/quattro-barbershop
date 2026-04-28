@@ -20,7 +20,12 @@ export class MyAppointmentsComponent {
   myAppointments = computed(() => {
     const user = this.auth.currentUser();
     if (!user) return [];
-    return this.bookingService.getUserAppointments(user.email);
+    const now = new Date();
+
+    return this.bookingService.getUserAppointments(user.email).filter((apt) => {
+      const [day, month, year] = apt.date.split('/');
+      return new Date(`${year}-${month}-${day}T${apt.time}`) >= now;
+    });
   });
 
   canCancel(apt: Appointment): boolean {

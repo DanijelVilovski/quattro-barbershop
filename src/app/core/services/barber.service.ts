@@ -33,11 +33,33 @@ export class BarberService {
     'Decembar',
   ];
 
-  readonly SERVICES: BarberServiceModel[] = [
-    { id: 1, name: 'Šišanje', price: 800, icon: '✂️' },
-    { id: 2, name: 'Pranje kose', price: 400, icon: '💧' },
-    { id: 3, name: 'Oblikovanje brade', price: 600, icon: '🧔' },
+  readonly ALL_SERVICES: BarberServiceModel[] = [
+    { id: 1, barberId: 1, name: 'Muško šišanje', price: 800 },
+    { id: 2, barberId: 1, name: 'Skraćivanje brade', price: 200 },
+    { id: 3, barberId: 1, name: 'Pranje kose', price: 200 },
+    { id: 4, barberId: 2, name: 'Šišanje mašinica', price: 1100 },
+    { id: 5, barberId: 2, name: 'Šišanje mašinica + Makaze', price: 1200 },
+    { id: 6, barberId: 2, name: 'Šišanje nula', price: 500 },
+    { id: 7, barberId: 2, name: 'Brada kratka', price: 400 },
+    { id: 8, barberId: 2, name: 'Brada duga', price: 500 },
+    { id: 9, barberId: 2, name: 'Shaver', price: 200 },
+    { id: 10, barberId: 2, name: 'Pranje kose', price: 200 },
   ];
+
+  // Groups of mutually exclusive services (radio-button behavior within each group)
+  readonly SERVICE_GROUPS: { barberId: number; ids: number[] }[] = [
+    { barberId: 2, ids: [4, 5, 6] },
+    { barberId: 2, ids: [7, 8] },
+  ];
+
+  getServicesForBarber(barberId: number): BarberServiceModel[] {
+    return this.ALL_SERVICES.filter((s) => s.barberId === barberId);
+  }
+
+  getServiceGroup(serviceId: number): number[] | null {
+    const group = this.SERVICE_GROUPS.find((g) => g.ids.includes(serviceId));
+    return group ? group.ids : null;
+  }
 
   readonly DURATIONS = [15, 30, 45];
 
@@ -85,7 +107,6 @@ export class BarberService {
     ]);
 
     const barbers: Barber[] = barberRows.map((row, index) => {
-      // Find the profile linked to this barber
       const profile = (profileRows || []).find((p) => p.barber_id === row.id);
       const name = profile ? profile.first_name : `Barber ${row.id}`;
 

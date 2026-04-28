@@ -39,6 +39,12 @@ export class AdminComponent implements OnInit {
   calendarDays: CalendarDay[] = [];
   selectedCalDays = signal<Set<string>>(new Set());
   today = new Date(new Date().setHours(0, 0, 0, 0));
+  todayIso = this.bs.toIsoDate(new Date());
+
+  // Submission guards
+  savingDay = signal(false);
+  deletingDay = signal(false);
+  submittingBooking = signal(false);
 
   // Day editor modal
   showDayModal = signal(false);
@@ -291,8 +297,10 @@ export class AdminComponent implements OnInit {
   }
 
   async saveDay() {
+    if (this.savingDay()) return;
     const barber = this.currentBarber();
     if (!barber) return;
+    this.savingDay.set(true);
 
     const config: DaySchedule = {
       active: this.editForm.active,
@@ -304,49 +312,59 @@ export class AdminComponent implements OnInit {
 
     const selected = this.selectedCalDays();
 
-    if (selected.size > 0) {
-      for (const iso of selected) {
-        await this.bs.setWorkDay(barber.id, iso, {
-          ...config,
-          breaks: JSON.parse(JSON.stringify(config.breaks)),
-        });
+    try {
+      if (selected.size > 0) {
+        for (const iso of selected) {
+          await this.bs.setWorkDay(barber.id, iso, {
+            ...config,
+            breaks: JSON.parse(JSON.stringify(config.breaks)),
+          });
+        }
+        this.showDayModal.set(false);
+        this.clearSelection();
+        await this.refresh();
+        this.toast.success(`${selected.size} dana konfigurisano!`);
+      } else if (this.editIsNew && this.editIso) {
+        await this.bs.setWorkDay(barber.id, this.editIso, config);
+        this.showDayModal.set(false);
+        await this.refresh();
+        this.toast.success('Dan sačuvan!');
+      } else if (this.editIso) {
+        await this.bs.setWorkDay(barber.id, this.editIso, config);
+        this.showDayModal.set(false);
+        await this.refresh();
+        this.toast.success('Dan sačuvan!');
       }
-      this.showDayModal.set(false);
-      this.clearSelection();
-      await this.refresh();
-      this.toast.success(`${selected.size} dana konfigurisano!`);
-    } else if (this.editIsNew && this.editIso) {
-      await this.bs.setWorkDay(barber.id, this.editIso, config);
-      this.showDayModal.set(false);
-      await this.refresh();
-      this.toast.success('Dan sačuvan!');
-    } else if (this.editIso) {
-      await this.bs.setWorkDay(barber.id, this.editIso, config);
-      this.showDayModal.set(false);
-      await this.refresh();
-      this.toast.success('Dan sačuvan!');
+    } finally {
+      this.savingDay.set(false);
     }
   }
 
   async deleteDay() {
+    if (this.deletingDay()) return;
     const barber = this.currentBarber();
     if (!barber) return;
+    this.deletingDay.set(true);
 
     const selected = this.selectedCalDays();
 
-    if (selected.size > 0) {
-      for (const iso of selected) {
-        await this.bs.removeWorkDay(barber.id, iso);
+    try {
+      if (selected.size > 0) {
+        for (const iso of selected) {
+          await this.bs.removeWorkDay(barber.id, iso);
+        }
+        this.showDayModal.set(false);
+        this.clearSelection();
+        await this.refresh();
+        this.toast.success(`${selected.size} dana uklonjeno!`);
+      } else if (this.editIso) {
+        await this.bs.removeWorkDay(barber.id, this.editIso);
+        this.showDayModal.set(false);
+        await this.refresh();
+        this.toast.success('Konfiguracija uklonjena.');
       }
-      this.showDayModal.set(false);
-      this.clearSelection();
-      await this.refresh();
-      this.toast.success(`${selected.size} dana uklonjeno!`);
-    } else if (this.editIso) {
-      await this.bs.removeWorkDay(barber.id, this.editIso);
-      this.showDayModal.set(false);
-      await this.refresh();
-      this.toast.success('Konfiguracija uklonjena.');
+    } finally {
+      this.deletingDay.set(false);
     }
   }
 
@@ -461,7 +479,12 @@ export class AdminComponent implements OnInit {
     );
   }
 
+  get isViewDatePast(): boolean {
+    return this.appointmentViewDate() < this.todayIso;
+  }
+
   onSlotClick(time: string) {
+    if (this.isViewDatePast) return;
     const apt = this.getAppointmentForSlot(time);
     if (apt) {
       this.selectedAppointment.set(apt);
@@ -475,44 +498,59 @@ export class AdminComponent implements OnInit {
   }
 
   toggleBookingService(id: number) {
+    const group = this.bs.getServiceGroup(id);
     const set = new Set(this.bookingServices());
-    if (set.has(id)) set.delete(id);
-    else set.add(id);
+    if (set.has(id)) {
+      set.delete(id);
+    } else {
+      if (group) group.forEach((gId) => set.delete(gId));
+      set.add(id);
+    }
     this.bookingServices.set(set);
   }
 
+  get currentBarberServices() {
+    return this.bs.getServicesForBarber(this.currentBarber()?.id ?? 0);
+  }
+
   get bookingTotalPrice(): number {
-    return this.bs.SERVICES.filter((s) => this.bookingServices().has(s.id)).reduce(
+    return this.currentBarberServices.filter((s) => this.bookingServices().has(s.id)).reduce(
       (sum, s) => sum + s.price,
       0,
     );
   }
 
   async submitBooking() {
+    if (this.submittingBooking()) return;
     const barber = this.currentBarber();
     const user = this.auth.currentUser();
     const slot = this.bookingSlot();
     if (!barber || !user || !slot) return;
 
-    const services = this.bs.SERVICES.filter((s) => this.bookingServices().has(s.id));
+    const services = this.bs.getServicesForBarber(barber.id).filter((s) => this.bookingServices().has(s.id));
     if (services.length === 0) {
       this.toast.error('Izaberite bar jednu uslugu.');
       return;
     }
 
-    const result = await this.bookingService.createAppointment({
-      barberId: barber.id,
-      date: this.bs.formatIsoToDisplay(this.appointmentViewDate()),
-      time: slot,
-      services: services.map((s) => s.name),
-      totalPrice: this.bookingTotalPrice,
-      userName: this.bookingName.trim(),
-      userEmail: this.bookingEmail.trim(),
-      userPhone: this.bookingPhone.trim(),
-    }, true);
+    this.submittingBooking.set(true);
+    try {
+      const result = await this.bookingService.createAppointment({
+        barberId: barber.id,
+        date: this.bs.formatIsoToDisplay(this.appointmentViewDate()),
+        time: slot,
+        services: services.map((s) => s.name),
+        totalPrice: this.bookingTotalPrice,
+        userName: this.bookingName.trim(),
+        userEmail: this.bookingEmail.trim(),
+        userPhone: this.bookingPhone.trim(),
+      }, true);
 
-    if (result) {
-      this.bookingSlot.set(null);
+      if (result) {
+        this.bookingSlot.set(null);
+      }
+    } finally {
+      this.submittingBooking.set(false);
     }
   }
 

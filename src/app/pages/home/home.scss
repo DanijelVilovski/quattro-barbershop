@@ -92,49 +92,11 @@
   font-size: 15px;
 }
 
-.barbers-section {
-  background: #0d1117;
-}
-
-/* ══════════ SERVICES ══════════ */
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 24px;
-}
-
-.service-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 32px;
-  text-align: center;
-}
-
-.service-icon {
-  font-size: 40px;
-  margin-bottom: 16px;
-}
-
-.service-name {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.service-price {
-  color: var(--orange);
-  font-size: 28px;
-  font-weight: 800;
-}
-
-/* ══════════ BARBERS ══════════ */
+/* ══════════ BARBERS + SERVICES ══════════ */
 .barbers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
-  max-width: 700px;
-  margin: 0 auto;
 }
 
 .barber-card {
@@ -145,20 +107,20 @@
 }
 
 .barber-avatar-wrap {
-  height: 220px;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .barber-avatar {
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 44px;
+  font-size: 40px;
   font-weight: 900;
   color: white;
 }
@@ -175,13 +137,45 @@
 .barber-role {
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
-.barber-desc {
+.barber-duration {
+  font-size: 13px;
   color: var(--text-muted);
+  margin-bottom: 16px;
+
+  span {
+    font-weight: 700;
+  }
+}
+
+.barber-services {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.barber-service-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 14px;
-  line-height: 1.6;
+}
+
+.barber-service-name {
+  color: var(--text-muted);
+}
+
+.barber-service-price {
+  font-weight: 700;
+  color: var(--orange);
+  white-space: nowrap;
 }
 
 /* ══════════ CTA SECTION ══════════ */

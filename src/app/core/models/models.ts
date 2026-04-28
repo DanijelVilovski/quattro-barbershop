@@ -1,9 +1,9 @@
 // ── Service offered by the barbershop ──
 export interface BarberService {
   id: number;
+  barberId: number;
   name: string;
   price: number;
-  icon: string;
 }
 
 // ── Break within a work day ──
