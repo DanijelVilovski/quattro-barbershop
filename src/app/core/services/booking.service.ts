@@ -37,6 +37,7 @@ export class BookingService {
   /** Create a new appointment */
   async createAppointment(
     data: Omit<Appointment, 'id' | 'createdAt'>,
+    skipEmail = false,
   ): Promise<Appointment | null> {
     // Get current user ID if logged in
     const currentUser = await this.supa.getUser();
@@ -64,16 +65,17 @@ export class BookingService {
 
     const appointment = this.mapRow(row);
     this.appointments.update((list) => [...list, appointment]);
-    this.toast.success(`Termin zakazan! Potvrda je poslata na ${data.userEmail}`);
+    this.toast.success('Termin zakazan!');
 
-    // Send confirmation email (fire and forget)
-    this.email.sendAppointmentConfirmation(data.userEmail, {
-      barber: this.getBarberName(data.barberId),
-      date: data.date,
-      time: data.time,
-      services: data.services.join(', '),
-      price: data.totalPrice,
-    });
+    if (!skipEmail) {
+      this.email.sendAppointmentConfirmation(data.userEmail, {
+        barber: this.getBarberName(data.barberId),
+        date: data.date,
+        time: data.time,
+        services: data.services.join(', '),
+        price: data.totalPrice,
+      });
+    }
 
     return appointment;
   }

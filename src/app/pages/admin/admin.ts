@@ -77,6 +77,11 @@ export class AdminComponent implements OnInit {
   // Appointments tab
   appointmentViewDate = signal(this.bs.toIsoDate(new Date()));
   selectedAppointment = signal<Appointment | null>(null);
+  bookingSlot = signal<string | null>(null);
+  bookingServices = signal<Set<number>>(new Set());
+  bookingName = '';
+  bookingEmail = '';
+  bookingPhone = '';
 
   timeOptions: string[] = [];
 
@@ -122,6 +127,8 @@ export class AdminComponent implements OnInit {
     } else if (this.scheduleMonthIndex() >= this.monthKeys.length) {
       this.scheduleMonthIndex.set(Math.max(0, this.monthKeys.length - 1));
     }
+
+    this.buildOffDaysList();
   }
 
   private buildOffDaysList() {
@@ -389,7 +396,7 @@ export class AdminComponent implements OnInit {
     });
     this.newTimeOff = { startDate: '', endDate: '', reason: 'godisnji_odmor', note: '' };
     await this.refresh();
-    this.toast.success('Odsutnost dodata!');
+    this.toast.success('Odsustvo dodato!');
   }
 
   startEditTimeOff(item: (typeof this.offDaysList)[0]) {
@@ -458,6 +465,66 @@ export class AdminComponent implements OnInit {
     const apt = this.getAppointmentForSlot(time);
     if (apt) {
       this.selectedAppointment.set(apt);
+    } else {
+      this.bookingServices.set(new Set());
+      this.bookingName = '';
+      this.bookingEmail = '';
+      this.bookingPhone = '';
+      this.bookingSlot.set(time);
+    }
+  }
+
+  toggleBookingService(id: number) {
+    const set = new Set(this.bookingServices());
+    if (set.has(id)) set.delete(id);
+    else set.add(id);
+    this.bookingServices.set(set);
+  }
+
+  get bookingTotalPrice(): number {
+    return this.bs.SERVICES.filter((s) => this.bookingServices().has(s.id)).reduce(
+      (sum, s) => sum + s.price,
+      0,
+    );
+  }
+
+  async submitBooking() {
+    const barber = this.currentBarber();
+    const user = this.auth.currentUser();
+    const slot = this.bookingSlot();
+    if (!barber || !user || !slot) return;
+
+    const services = this.bs.SERVICES.filter((s) => this.bookingServices().has(s.id));
+    if (services.length === 0) {
+      this.toast.error('Izaberite bar jednu uslugu.');
+      return;
+    }
+
+    const result = await this.bookingService.createAppointment({
+      barberId: barber.id,
+      date: this.bs.formatIsoToDisplay(this.appointmentViewDate()),
+      time: slot,
+      services: services.map((s) => s.name),
+      totalPrice: this.bookingTotalPrice,
+      userName: this.bookingName.trim(),
+      userEmail: this.bookingEmail.trim(),
+      userPhone: this.bookingPhone.trim(),
+    }, true);
+
+    if (result) {
+      this.bookingSlot.set(null);
+    }
+  }
+
+  async cancelSelectedAppointment() {
+    const apt = this.selectedAppointment();
+    if (!apt) return;
+    const success = await this.bookingService.cancelAppointment(apt.id);
+    if (success) {
+      this.selectedAppointment.set(null);
+      this.toast.success('Termin otkazan.');
+    } else {
+      this.toast.error('Otkazivanje nije moguće.');
     }
   }
 
@@ -498,7 +565,7 @@ export class AdminComponent implements OnInit {
     const map: Record<string, string> = {
       working: 'Radi',
       off_configured: 'Neradan',
-      time_off: 'Odsutnost',
+      time_off: 'Odsustvo',
       closure: 'Zatvoreno',
     };
     return map[type] || type;

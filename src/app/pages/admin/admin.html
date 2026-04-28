@@ -52,7 +52,7 @@
   @if (activeTab() === 'calendar') {
     <div class="slide-in">
       <p class="tab-desc">
-        Kliknite na dane da ih izaberete, zatim konfigurišite sve odjednom. Dani odsutnosti i
+        Kliknite na dane da ih izaberete, zatim konfigurišite sve odjednom. Dani odsustva i
         zatvaranja se podešavaju u "Odsustva i zatvaranje lokala".
       </p>
 
@@ -273,16 +273,16 @@
       <!-- Barber Absences -->
       <div class="card section-card">
         <h3 class="card-title">🧑 Moja odsustva</h3>
-        <p class="card-desc">Godišnji odmor, bolovanje ili drugi razlozi odsutnosti.</p>
+        <p class="card-desc">Godišnji odmor, bolovanje ili drugi razlozi odsustva.</p>
 
         <div class="form-row-wrap">
           <div class="form-group" style="flex: 1; min-width: 140px">
             <label class="form-label">Od</label>
-            <input class="input-field" type="date" [(ngModel)]="newTimeOff.startDate" />
+            <input class="input-field date-field" type="date" [(ngModel)]="newTimeOff.startDate" />
           </div>
           <div class="form-group" style="flex: 1; min-width: 140px">
             <label class="form-label">Do</label>
-            <input class="input-field" type="date" [(ngModel)]="newTimeOff.endDate" />
+            <input class="input-field date-field" type="date" [(ngModel)]="newTimeOff.endDate" />
           </div>
         </div>
         <div class="form-row-wrap" style="margin-top: 12px">
@@ -343,7 +343,7 @@
         <div class="form-row-wrap">
           <div class="form-group" style="flex: 1; min-width: 140px">
             <label class="form-label">Datum</label>
-            <input class="input-field" type="date" [(ngModel)]="newClosure.date" />
+            <input class="input-field date-field" type="date" [(ngModel)]="newClosure.date" />
           </div>
           <div class="form-group" style="flex: 1; min-width: 140px">
             <label class="form-label">Razlog</label>
@@ -378,6 +378,81 @@
         } @else {
           <p class="empty-hint">Nema zatvaranja.</p>
         }
+      </div>
+    </div>
+  }
+
+  <!-- ════════════════════════════ -->
+  <!--  BOOKING FORM MODAL         -->
+  <!-- ════════════════════════════ -->
+  @if (bookingSlot()) {
+    <div class="modal-overlay" (click)="bookingSlot.set(null)">
+      <div class="modal-card scale-in" style="max-width: 420px" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>📋 Zakaži termin</h3>
+          <button class="close-btn" (click)="bookingSlot.set(null)">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="apt-modal-detail">
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Klijent:</span>
+              <input class="input-field apt-modal-input" [(ngModel)]="bookingName" placeholder="Ime klijenta" />
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Datum:</span>
+              <span class="apt-modal-value">{{ bs.formatIsoToDisplay(appointmentViewDate()) }}</span>
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Vreme:</span>
+              <span class="apt-modal-value">{{ bookingSlot() }}h</span>
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Email:</span>
+              <input class="input-field apt-modal-input" [(ngModel)]="bookingEmail" placeholder="Email" type="email" />
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Telefon:</span>
+              <input class="input-field apt-modal-input" [(ngModel)]="bookingPhone" placeholder="Telefon" type="tel" />
+            </div>
+            <div class="apt-modal-row" style="flex-direction: column; align-items: flex-start; gap: 10px">
+              <span class="apt-modal-label">Usluge:</span>
+              @for (svc of bs.SERVICES; track svc.id) {
+                <label class="booking-service-row">
+                  <input
+                    type="checkbox"
+                    class="booking-service-check"
+                    [checked]="bookingServices().has(svc.id)"
+                    (change)="toggleBookingService(svc.id)"
+                  />
+                  <span>{{ svc.icon }} {{ svc.name }}</span>
+                  <span class="booking-service-price">{{ svc.price }} din</span>
+                </label>
+              }
+            </div>
+            <div class="apt-modal-row">
+              <span class="apt-modal-label">Cena:</span>
+              <span class="apt-modal-value" style="color: var(--orange); font-weight: 700">
+                {{ bookingTotalPrice }} din
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end; gap: 12px">
+          <button
+            class="btn-outline"
+            style="padding: 10px 24px; font-size: 14px"
+            (click)="bookingSlot.set(null)"
+          >
+            Zatvori
+          </button>
+          <button
+            class="btn-primary"
+            style="padding: 10px 24px; font-size: 14px"
+            (click)="submitBooking()"
+          >
+            Zakaži
+          </button>
+        </div>
       </div>
     </div>
   }
@@ -426,13 +501,20 @@
             </div>
           </div>
         </div>
-        <div class="modal-footer" style="justify-content: flex-end">
+        <div class="modal-footer" style="justify-content: flex-end; gap: 12px">
           <button
             class="btn-outline"
             style="padding: 10px 24px; font-size: 14px"
             (click)="selectedAppointment.set(null)"
           >
             Zatvori
+          </button>
+          <button
+            class="btn-danger"
+            style="padding: 10px 24px; font-size: 14px"
+            (click)="cancelSelectedAppointment()"
+          >
+            Otkaži termin
           </button>
         </div>
       </div>
@@ -465,7 +547,7 @@
                 >Izaberite datum</label
               >
               <input
-                class="input-field"
+                class="input-field date-field"
                 type="date"
                 [(ngModel)]="editIso"
                 style="font-size: 15px"
@@ -639,18 +721,26 @@
     <div class="modal-overlay" (click)="editingTimeOff.set(null)">
       <div class="modal-card scale-in" style="max-width: 480px" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3>✏️ Izmeni odsutnost</h3>
+          <h3>✏️ Izmeni odsustvo</h3>
           <button class="close-btn" (click)="editingTimeOff.set(null)">✕</button>
         </div>
         <div class="modal-body">
           <div class="form-row-wrap" style="margin-bottom: 16px">
             <div class="form-group" style="flex: 1; min-width: 140px">
               <label class="form-label">Od</label>
-              <input class="input-field" type="date" [(ngModel)]="editingTimeOff()!.startDate" />
+              <input
+                class="input-field date-field"
+                type="date"
+                [(ngModel)]="editingTimeOff()!.startDate"
+              />
             </div>
             <div class="form-group" style="flex: 1; min-width: 140px">
               <label class="form-label">Do</label>
-              <input class="input-field" type="date" [(ngModel)]="editingTimeOff()!.endDate" />
+              <input
+                class="input-field date-field"
+                type="date"
+                [(ngModel)]="editingTimeOff()!.endDate"
+              />
             </div>
           </div>
           <div class="form-row-wrap">

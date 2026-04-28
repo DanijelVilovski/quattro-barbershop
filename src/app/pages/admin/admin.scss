@@ -562,6 +562,15 @@
 
   &.available {
     opacity: 0.6;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 1;
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-glow);
+      transform: scale(1.05);
+    }
   }
 }
 
@@ -597,6 +606,38 @@
 .apt-modal-value {
   font-weight: 600;
   text-align: right;
+}
+
+.apt-modal-input {
+  // flex: 1;
+  width: 50%;
+  padding: 6px 10px;
+  font-size: 14px;
+  text-align: right;
+}
+
+.booking-service-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+
+  .booking-service-price {
+    margin-left: auto;
+    color: var(--orange);
+    font-weight: 600;
+  }
+}
+
+.booking-service-check {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--orange);
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 // ══════ EMPTY STATE ══════
@@ -905,6 +946,11 @@
   }
 
   .apt-modal-value {
+    text-align: left;
+  }
+
+  .apt-modal-input {
+    width: 100%;
     text-align: left;
   }
 }

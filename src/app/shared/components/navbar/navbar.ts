@@ -18,4 +18,8 @@ export class NavbarComponent {
     await this.auth.logout();
     this.router.navigate(['/home']);
   }
+
+  ngOnInit() {
+    console.log(this.auth.currentUser());
+  }
 }

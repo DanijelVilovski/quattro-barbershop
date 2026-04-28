@@ -168,6 +168,25 @@ img {
   }
 }
 
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+
+  &:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
 // ── Form Elements ──
 .input-field {
   background: var(--bg-tertiary);
@@ -180,6 +199,14 @@ img {
   font-family: inherit;
   transition: border-color var(--transition);
   outline: none;
+
+  &.date-field {
+    padding: 12px 16px;
+
+    @media (max-width: 600px) {
+      padding: 12px 0px;
+    }
+  }
 
   &:focus {
     border-color: var(--orange);

@@ -234,12 +234,25 @@ CREATE POLICY "Anon users can create appointments"
 CREATE POLICY "Users can cancel own appointments"
   ON public.appointments FOR UPDATE
   USING (
-    user_email = (
-      SELECT email FROM auth.users WHERE id = auth.uid()
-    )
+    user_email = (SELECT email FROM auth.users WHERE id = auth.uid())
     OR EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid() AND role = 'admin'
+    )
+  )
+  WITH CHECK (true);
+
+CREATE POLICY "Users can read own cancelled appointments"
+  ON public.appointments FOR SELECT
+  TO authenticated
+  USING (
+    status = 'cancelled'
+    AND (
+      user_email = (SELECT email FROM auth.users WHERE id = auth.uid())
+      OR EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'admin'
+      )
     )
   );
 

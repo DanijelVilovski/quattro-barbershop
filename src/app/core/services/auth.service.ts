@@ -53,6 +53,7 @@ export class AuthService {
     }
 
     this.toast.success(`Registracija uspešna!`);
+    this.toast.success(`Proverite email kako biste potvrdili nalog.`);
 
     // Send welcome email (fire and forget)
     import('./email.service').then((m) => {
@@ -70,7 +71,15 @@ export class AuthService {
     });
 
     if (error) {
-      this.toast.error(error.message);
+      if (error.message === 'Email not confirmed') {
+        this.toast.error(
+          'Vaš email nije potvrđen. Molimo proverite inbox i kliknite na link za potvrdu.',
+        );
+      } else if (error.message === 'Invalid login credentials') {
+        this.toast.error('Pogrešan email ili lozinka.');
+      } else {
+        this.toast.error('Došlo je do greške prilikom prijave. Pokušajte ponovo.');
+      }
       return false;
     }
 
