@@ -57,7 +57,8 @@ export interface Barber {
   id: number;
   name: string; // from profiles.first_name + last_name
   role: string; // "Barber" or custom from profile
-  color: string; // assigned programmatically
+  color: string;
+  colorDark: string;
   globalDuration: number;
   schedule: BarberSchedule;
 }

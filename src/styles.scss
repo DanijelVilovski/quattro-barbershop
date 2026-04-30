@@ -2,27 +2,28 @@
 
 // ── Variables ──
 :root {
-  --bg-primary: #030712;
-  --bg-secondary: #111827;
-  --bg-tertiary: #1f2937;
-  --bg-card: #111827;
-  --border: #1f2937;
-  --border-hover: #374151;
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #141414;
+  --bg-tertiary: #1f1f1f;
+  --bg-card: #141414;
+  --border: #1f1f1f;
+  --border-hover: #2e2e2e;
   --text-primary: #ffffff;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
-  --text-faint: #4b5563;
-  --orange: #f97316;
-  --orange-dark: #ea580c;
-  --orange-glow: rgba(249, 115, 22, 0.15);
-  --orange-border: rgba(249, 115, 22, 0.3);
+  --text-secondary: #d4d4d4;
+  --text-muted: #a3a3a3;
+  --text-dim: #737373;
+  --text-faint: #525252;
+  --orange: #eab308;
+  --orange-dark: #ca8a04;
+  --orange-glow: rgba(234, 179, 8, 0.15);
+  --orange-border: rgba(234, 179, 8, 0.3);
   --red: #ef4444;
   --green: #22c55e;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --transition: 0.2s ease;
+  --navbar-height: 127.75px;
 }
 
 // ── Reset & Base ──
@@ -137,7 +138,7 @@ img {
 
   &:hover {
     transform: scale(1.03);
-    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+    box-shadow: 0 4px 15px rgba(234, 179, 8, 0.4);
   }
 
   &:active {

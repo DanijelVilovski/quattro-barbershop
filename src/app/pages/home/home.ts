@@ -11,4 +11,13 @@ import { BarberService } from '../../core/services/barber.service';
 })
 export class HomeComponent {
   barberService = inject(BarberService);
+
+  getStyleType(barberId: number): string {
+    if (barberId === 1) {
+      return '(classic style)';
+    } else if (barberId === 2) {
+      return '(modern style)';
+    }
+    return '';
+  }
 }

@@ -7,7 +7,7 @@
         >💈</span
       >
     </div>
-    <h1 class="hero-title">Stil koji <span class="text-orange">govori</span> umesto tebe</h1>
+    <img src="images/Q_quattro.png" class="hero-title-img" alt="Quattro" />
     <p class="hero-subtitle">Vaš omiljeni barbershop u Novom Sadu.</p>
 
     <a routerLink="/book-appointment" class="btn-primary hero-cta">
@@ -28,13 +28,13 @@
           <div
             class="barber-avatar-wrap"
             [style.background]="
-              'linear-gradient(135deg, ' + barber.color + '22, ' + barber.color + '08)'
+              'linear-gradient(135deg, ' + barber.color + '22, ' + barber.colorDark + '08)'
             "
           >
             <div
               class="barber-avatar"
               [style.background]="
-                'linear-gradient(135deg, ' + barber.color + ', ' + barber.color + '88)'
+                'linear-gradient(135deg, ' + barber.color + ', ' + barber.colorDark + ')'
               "
             >
               {{ barber.name[0] }}
@@ -42,7 +42,9 @@
           </div>
           <div class="barber-info">
             <h3 class="barber-name">{{ barber.name }}</h3>
-            <p class="barber-role" [style.color]="barber.color">{{ barber.role }}</p>
+            <p class="barber-role" [style.color]="barber.color">
+              {{ barber.role }} {{ getStyleType(barber.id) }}
+            </p>
             <p class="barber-duration">
               Trajanje termina:
               <span [style.color]="barber.color">{{ barber.globalDuration }} min</span>

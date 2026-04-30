@@ -64,13 +64,13 @@ export class BarberService {
   readonly DURATIONS = [15, 30, 45];
 
   // Programmatic colors assigned by index
-  private readonly BARBER_COLORS = [
-    '#f97316',
-    '#eab308',
-    '#22c55e',
-    '#3b82f6',
-    '#a855f7',
-    '#ec4899',
+  private readonly BARBER_COLORS: [string, string][] = [
+    ['#eab308', '#ca8a04'],
+    ['#eab308', '#ca8a04'],
+    ['#6b7280', '#4b5563'],
+    ['#4b5563', '#374151'],
+    ['#9ca3af', '#6b7280'],
+    ['#374151', '#1f2937'],
   ];
 
   barbers = signal<Barber[]>([]);
@@ -137,7 +137,8 @@ export class BarberService {
         id: row.id,
         name,
         role: 'Barber',
-        color: this.BARBER_COLORS[index % this.BARBER_COLORS.length],
+        color: this.BARBER_COLORS[index % this.BARBER_COLORS.length][0],
+        colorDark: this.BARBER_COLORS[index % this.BARBER_COLORS.length][1],
         globalDuration: row.global_duration,
         schedule: {
           globalDuration: row.global_duration,

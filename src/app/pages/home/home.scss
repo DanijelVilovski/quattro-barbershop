@@ -1,10 +1,29 @@
 /* ══════════ HERO ══════════ */
 .hero {
-  background: linear-gradient(135deg, #000 0%, #1a1a2e 50%, #16213e 100%);
-  padding: 80px 20px 90px;
+  background: url('/images/quattro_backgorund.jpg') top center/cover no-repeat;
+  height: calc(100vh - var(--navbar-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   position: relative;
   overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.87);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    background-size: cover;
+    background-position: center;
+    height: auto;
+    aspect-ratio: 3 / 3;
+  }
 }
 
 .hero-glow {
@@ -14,13 +33,14 @@
   transform: translate(-50%, -50%);
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(249, 115, 22, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(234, 179, 8, 0.08) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
 
 .hero-content {
   position: relative;
+  z-index: 1;
   max-width: 700px;
   margin: 0 auto;
 }
@@ -29,8 +49,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(249, 115, 22, 0.1);
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
   border-radius: 50px;
   padding: 8px 20px;
   margin-bottom: 30px;
@@ -50,6 +70,14 @@
   line-height: 1.1;
   margin-bottom: 20px;
   letter-spacing: -1px;
+}
+
+.hero-title-img {
+  max-width: 100px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
 .hero-subtitle {
