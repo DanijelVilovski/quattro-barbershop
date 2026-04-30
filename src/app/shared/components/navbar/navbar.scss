@@ -20,6 +20,7 @@
 .logo {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   text-decoration: none;
   color: white;
@@ -151,5 +152,14 @@
 
   .logout-label {
     display: none;
+  }
+
+  .navbar-inner {
+    justify-content: center;
+  }
+
+  .menu-toggle {
+    position: absolute;
+    right: 20px;
   }
 }
