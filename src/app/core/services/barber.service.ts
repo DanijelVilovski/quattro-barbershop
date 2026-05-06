@@ -213,6 +213,27 @@ export class BarberService {
     return days;
   }
 
+  getBookingDaysForBarber(barberId: number): BookingDay[] {
+    const count = barberId === 1 ? 6 : 3;
+    const shortLabels = ['Danas', 'Sutra', 'Prekosutra'];
+    const days: BookingDay[] = [];
+    for (let i = 0; i < count; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const iso = this.toIsoDate(d);
+      days.push({
+        date: d,
+        dayOfWeek: d.getDay(),
+        label: shortLabels[i] ?? this.DAY_NAMES[d.getDay()],
+        dateStr: this.toDisplayDate(d),
+        isoDate: iso,
+        dayName: this.DAY_NAMES[d.getDay()],
+        isOpen: !this.shopClosures().some((c) => c.date === iso),
+      });
+    }
+    return days;
+  }
+
   // ════════════════════════════════
   //  SLOT GENERATION
   // ════════════════════════════════

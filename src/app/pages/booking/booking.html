@@ -1,6 +1,6 @@
 <div class="booking-page fade-in">
   <h1 class="page-title">Zakaži <span class="text-orange">termin</span></h1>
-  <p class="page-subtitle">Izaberi dan, barbera i vreme — gotovo za 30 sekundi</p>
+  <p class="page-subtitle">Izaberi barbera, dan i vreme — gotovo za 30 sekundi</p>
 
   <!-- ══════ STEP INDICATORS ══════ -->
   <div class="steps-bar">
@@ -20,9 +20,36 @@
     }
   </div>
 
-  <!-- ══════ STEP 1: CHOOSE DAY ══════ -->
+  <!-- ══════ STEP 1: CHOOSE BARBER ══════ -->
   @if (step() === 1) {
     <div class="slide-in">
+      <h3 class="step-title">Izaberite barbera</h3>
+      <div class="barber-grid">
+        @for (barber of barberService.barbers(); track barber.id) {
+          <button class="barber-card" (click)="selectBarber(barber)">
+            <div
+              class="barber-avatar"
+              [style.background]="
+                'linear-gradient(135deg, ' + barber.color + ', ' + barber.color + '88)'
+              "
+            >
+              {{ barber.name[0] }}
+            </div>
+            <div class="barber-name">{{ barber.name }}</div>
+            <div class="barber-role" [style.color]="barber.color">{{ barber.role }}</div>
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ══════ STEP 2: CHOOSE DAY ══════ -->
+  @if (step() === 2) {
+    <div class="slide-in">
+      <button class="back-btn" (click)="goBack()">← Nazad</button>
+      <div class="context-bar">
+        <span>👤 {{ selectedBarber()!.name }}</span>
+      </div>
       <h3 class="step-title">Izaberite dan</h3>
       <div class="day-grid">
         @for (day of days; track day.dateStr; let i = $index) {
@@ -33,7 +60,6 @@
             [disabled]="!info.enabled"
             (click)="selectDay(i)"
           >
-            <div class="day-label">{{ day.label }}</div>
             <div class="day-name">{{ day.dayName }}</div>
             <div class="day-date">{{ day.dateStr }}</div>
             @if (day.dayOfWeek === 0) {
@@ -51,53 +77,14 @@
     </div>
   }
 
-  <!-- ══════ STEP 2: CHOOSE BARBER ══════ -->
-  @if (step() === 2) {
-    <div class="slide-in">
-      <button class="back-btn" (click)="goBack()">← Nazad</button>
-      <div class="context-bar">
-        <span>📅 {{ selectedDay()!.dayName }}, {{ selectedDay()!.dateStr }}</span>
-      </div>
-      <h3 class="step-title">Izaberite barbera</h3>
-      <div class="barber-grid">
-        @for (barber of barberService.barbers(); track barber.id) {
-          @let slotCount = getBarberSlotCount(barber);
-          @let available = slotCount > 0;
-          <button
-            class="barber-card"
-            [class.disabled]="!available"
-            [disabled]="!available"
-            (click)="selectBarber(barber)"
-          >
-            <div
-              class="barber-avatar"
-              [style.background]="
-                'linear-gradient(135deg, ' + barber.color + ', ' + barber.color + '88)'
-              "
-            >
-              {{ barber.name[0] }}
-            </div>
-            <div class="barber-name">{{ barber.name }}</div>
-            <div class="barber-role" [style.color]="barber.color">{{ barber.role }}</div>
-            @if (available) {
-              <div class="barber-available">Preostalo termina: {{ slotCount }}</div>
-            } @else {
-              <div class="barber-off">Nema slobodnih termina</div>
-            }
-          </button>
-        }
-      </div>
-    </div>
-  }
-
   <!-- ══════ STEP 3: CHOOSE TIME ══════ -->
   @if (step() === 3) {
     <div class="slide-in">
       <button class="back-btn" (click)="goBack()">← Nazad</button>
       <div class="context-bar">
-        <span>📅 {{ selectedDay()!.dateStr }}</span>
-        <span class="context-divider">|</span>
         <span>👤 {{ selectedBarber()!.name }}</span>
+        <span class="context-divider">|</span>
+        <span>📅 {{ selectedDay()!.dayName }}, {{ selectedDay()!.dateStr }}</span>
       </div>
       <h3 class="step-title">Izaberite vreme</h3>
       @if (availableSlots().length === 0) {

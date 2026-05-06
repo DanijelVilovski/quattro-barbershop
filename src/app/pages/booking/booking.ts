@@ -23,7 +23,7 @@ export class BookingComponent implements OnInit {
 
   step = signal(1);
   days: BookingDay[] = [];
-  stepLabels = ['Dan', 'Barber', 'Vreme', 'Detalji'];
+  stepLabels = ['Barber', 'Dan', 'Vreme', 'Detalji'];
 
   selectedDayIndex = signal<number | null>(null);
   selectedDay = computed(() =>
@@ -56,11 +56,10 @@ export class BookingComponent implements OnInit {
   formTelefon = '';
 
   ngOnInit() {
-    this.days = this.barberService.getBookingDays();
     this.prefillForm();
   }
 
-  /** Get availability info for a day card */
+  /** Get availability info for a day card (uses the already-selected barber) */
   getDayInfo(day: BookingDay): { enabled: boolean; totalSlots: number; closure: string | null } {
     if (day.dayOfWeek === 0) {
       return { enabled: false, totalSlots: 0, closure: null };
@@ -74,35 +73,29 @@ export class BookingComponent implements OnInit {
       return { enabled: false, totalSlots: 0, closure: null };
     }
 
-    const totalSlots = this.barberService.barbers().reduce((sum, barber) => {
-      const booked = this.bookingService.getBookedTimes(barber.id, day.dateStr);
-      return (
-        sum +
-        this.barberService.getAvailableSlots(barber, day.isoDate, booked, day.label === 'Danas')
-          .length
-      );
-    }, 0);
+    const barber = this.selectedBarber();
+    if (!barber) return { enabled: false, totalSlots: 0, closure: null };
+
+    const booked = this.bookingService.getBookedTimes(barber.id, day.dateStr);
+    const totalSlots = this.barberService.getAvailableSlots(
+      barber,
+      day.isoDate,
+      booked,
+      day.label === 'Danas',
+    ).length;
 
     return { enabled: totalSlots > 0, totalSlots, closure: null };
   }
 
-  /** Get available slot count for a barber on the selected day */
-  getBarberSlotCount(barber: Barber): number {
-    const day = this.selectedDay();
-    if (!day) return 0;
-    const booked = this.bookingService.getBookedTimes(barber.id, day.dateStr);
-    return this.barberService.getAvailableSlots(barber, day.isoDate, booked, day.label === 'Danas')
-      .length;
-  }
-
-  selectDay(index: number) {
-    this.selectedDayIndex.set(index);
-    this.step.set(2);
-    window.scrollTo(0, 0);
-  }
   selectBarber(barber: Barber) {
     this.selectedBarber.set(barber);
     this.selectedServices.set([]);
+    this.days = this.barberService.getBookingDaysForBarber(barber.id);
+    this.step.set(2);
+    window.scrollTo(0, 0);
+  }
+  selectDay(index: number) {
+    this.selectedDayIndex.set(index);
     this.step.set(3);
     window.scrollTo(0, 0);
   }
@@ -115,10 +108,12 @@ export class BookingComponent implements OnInit {
   goBack() {
     const s = this.step();
     if (s === 2) {
-      this.selectedDayIndex.set(null);
+      this.selectedBarber.set(null);
+      this.selectedServices.set([]);
+      this.days = [];
       this.step.set(1);
     } else if (s === 3) {
-      this.selectedBarber.set(null);
+      this.selectedDayIndex.set(null);
       this.step.set(2);
     } else if (s === 4) {
       this.selectedTime.set(null);
