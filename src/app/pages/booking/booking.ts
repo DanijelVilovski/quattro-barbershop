@@ -65,6 +65,12 @@ export class BookingComponent implements OnInit {
       return { enabled: false, totalSlots: 0, closure: null };
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (day.date < today) {
+      return { enabled: false, totalSlots: 0, closure: null };
+    }
+
     const closureEntry = this.barberService.shopClosures().find((c) => c.date === day.isoDate);
     if (closureEntry) {
       return { enabled: false, totalSlots: 0, closure: closureEntry.reason };

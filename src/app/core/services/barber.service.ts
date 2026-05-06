@@ -214,17 +214,48 @@ export class BarberService {
   }
 
   getBookingDaysForBarber(barberId: number): BookingDay[] {
-    const count = barberId === 1 ? 6 : 3;
+    if (barberId === 1) {
+      return this.getCurrentWeekDays();
+    }
+
     const shortLabels = ['Danas', 'Sutra', 'Prekosutra'];
     const days: BookingDay[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < 3; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const iso = this.toIsoDate(d);
       days.push({
         date: d,
         dayOfWeek: d.getDay(),
-        label: shortLabels[i] ?? this.DAY_NAMES[d.getDay()],
+        label: shortLabels[i],
+        dateStr: this.toDisplayDate(d),
+        isoDate: iso,
+        dayName: this.DAY_NAMES[d.getDay()],
+        isOpen: !this.shopClosures().some((c) => c.date === iso),
+      });
+    }
+    return days;
+  }
+
+  private getCurrentWeekDays(): BookingDay[] {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // If today is Sunday, show next week; otherwise show the current Mon–Sun
+    const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + (dayOfWeek === 0 ? 1 : 1 - dayOfWeek));
+
+    const days: BookingDay[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const iso = this.toIsoDate(d);
+      const isToday = d.getTime() === today.getTime();
+      days.push({
+        date: d,
+        dayOfWeek: d.getDay(),
+        label: isToday ? 'Danas' : this.DAY_NAMES[d.getDay()],
         dateStr: this.toDisplayDate(d),
         isoDate: iso,
         dayName: this.DAY_NAMES[d.getDay()],
