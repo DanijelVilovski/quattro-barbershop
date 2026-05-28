@@ -46,6 +46,9 @@ export class BarberService {
     { id: 10, barberId: 2, name: 'Pranje kose', price: 200 },
   ];
 
+  // IDs that qualify as a haircut — at least one must be selected to book
+  readonly HAIRCUT_SERVICE_IDS: number[] = [1, 4, 5, 6];
+
   // Groups of mutually exclusive services (radio-button behavior within each group)
   readonly SERVICE_GROUPS: { barberId: number; ids: number[] }[] = [
     { barberId: 2, ids: [4, 5, 6] },

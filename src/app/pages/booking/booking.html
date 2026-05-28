@@ -133,6 +133,10 @@
         }
       </div>
 
+      @if (!hasHaircut()) {
+        <p class="service-hint">* Odaberite bar jednu uslugu šišanja za rezervaciju termina</p>
+      }
+
       @if (totalPrice() > 0) {
         <div class="total-bar">
           <span>Ukupno:</span>

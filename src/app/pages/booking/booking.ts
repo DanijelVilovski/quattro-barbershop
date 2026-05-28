@@ -147,12 +147,17 @@ export class BookingComponent implements OnInit {
     }
   }
 
+  hasHaircut(): boolean {
+    const haircutIds = this.barberService.HAIRCUT_SERVICE_IDS;
+    return this.selectedServices().some((id) => haircutIds.includes(id));
+  }
+
   canSubmit(): boolean {
     return (
       this.formIme.trim() !== '' &&
       this.formEmail.trim() !== '' &&
       this.formTelefon.trim() !== '' &&
-      this.selectedServices().length > 0
+      this.hasHaircut()
     );
   }
 
