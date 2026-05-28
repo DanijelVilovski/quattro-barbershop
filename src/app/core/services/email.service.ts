@@ -24,6 +24,7 @@ export class EmailService {
       time: string;
       services: string;
       price: number;
+      cancelUrl?: string;
     },
   ): Promise<void> {
     await this.send('appointment_confirmed', email, data);

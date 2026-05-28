@@ -74,6 +74,7 @@ export class BookingService {
         time: data.time,
         services: data.services.join(', '),
         price: data.totalPrice,
+        cancelUrl: `${window.location.origin}/cancel-appointment?token=${row.cancel_token}`,
       });
     }
 
@@ -134,6 +135,50 @@ export class BookingService {
     return this.appointments()
       .filter((a) => a.barberId === barberId && a.date === dateStr)
       .map((a) => a.time);
+  }
+
+  /** Handle cancel-token in URL (from email link) — called once on app load */
+  async handleCancelLinkFromUrl(): Promise<void> {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (!token) return;
+
+    // Strip token from URL immediately so refresh doesn't re-trigger
+    params.delete('token');
+    const newSearch = params.toString();
+    const newUrl =
+      window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+    window.history.replaceState({}, '', newUrl);
+
+    try {
+      const { data, error } = await this.supa.client.functions.invoke('cancel-appointment', {
+        body: { token },
+      });
+
+      if (error || !data?.success) {
+        const code = data?.error || 'unknown';
+        this.toast.error(this.cancelErrorMessage(code));
+        return;
+      }
+
+      this.toast.success('Termin otkazan. Email potvrda poslata.');
+
+      // Refresh the in-memory list in case the cancelled appointment was loaded
+      await this.loadAppointments();
+    } catch (err: any) {
+      this.toast.error('Greška pri otkazivanju termina.');
+      console.error('cancel via link error:', err);
+    }
+  }
+
+  private cancelErrorMessage(code: string): string {
+    switch (code) {
+      case 'not_found': return 'Termin nije pronađen. Link je možda neispravan.';
+      case 'already_cancelled': return 'Ovaj termin je već otkazan.';
+      case 'too_late': return 'Otkazivanje nije moguće manje od 2 sata pre termina.';
+      case 'invalid_token': return 'Nevažeći token.';
+      default: return 'Došlo je do greške pri otkazivanju.';
+    }
   }
 
   /** Map a Supabase row to our Appointment model */
