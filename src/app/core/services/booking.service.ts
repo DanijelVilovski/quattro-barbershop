@@ -4,6 +4,7 @@ import { ToastService } from './toast.service';
 import { SupabaseService } from './supabase.service';
 import { EmailService } from './email.service';
 import { BarberService } from './barber.service';
+import { consumerPollProducersForChange } from '@angular/core/primitives/signals';
 
 @Injectable({ providedIn: 'root' })
 export class BookingService {
@@ -158,6 +159,9 @@ export class BookingService {
       if (error || !data?.success) {
         const code = data?.error || 'unknown';
         this.toast.error(this.cancelErrorMessage(code));
+        console.log(this.cancelErrorMessage)
+        console.log(data?.error)
+        console.log(data);
         return;
       }
 
