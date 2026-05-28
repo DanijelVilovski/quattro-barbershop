@@ -19,7 +19,5 @@ export class NavbarComponent {
     this.router.navigate(['/home']);
   }
 
-  ngOnInit() {
-    console.log(this.auth.currentUser());
-  }
+  ngOnInit() {}
 }
