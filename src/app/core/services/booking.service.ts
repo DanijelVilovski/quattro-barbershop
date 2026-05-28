@@ -151,6 +151,8 @@ export class BookingService {
     window.history.replaceState({}, '', newUrl);
 
     try {
+      console.log('Calling cancel-appointment with token:', token, 'type:', typeof token);   // ← add this
+
       const { data, error } = await this.supa.client.functions.invoke('cancel-appointment', {
         body: { token },
       });
