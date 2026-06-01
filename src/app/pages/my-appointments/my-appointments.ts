@@ -19,13 +19,19 @@ export class MyAppointmentsComponent {
 
   myAppointments = computed(() => {
     const user = this.auth.currentUser();
+    console.log('[myAppointments] user:', user);
     if (!user) return [];
     const now = new Date();
 
-    return this.bookingService.getUserAppointments(user.email).filter((apt) => {
+    const all = this.bookingService.getUserAppointments(user.email, user.id);
+    console.log('[myAppointments] all appointments for user:', all);
+
+    const filtered = all.filter((apt) => {
       const [day, month, year] = apt.date.split('/');
       return new Date(`${year}-${month}-${day}T${apt.time}`) >= now;
     });
+    console.log('[myAppointments] filtered (upcoming):', filtered);
+    return filtered;
   });
 
   canCancel(apt: Appointment): boolean {

@@ -4,7 +4,8 @@
       "Bash(node:*)",
       "Bash(Get-ChildItem -Path \"C:\\\\users\\\\daniv\\\\source\\\\repos\\\\quattro-barbershop\" -Recurse -Directory)",
       "Bash(Select-Object FullName)",
-      "PowerShell(head *)"
+      "PowerShell(head *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\daniv\\\\source\\\\repos\\\\quattro-barbershop\\\\src\\\\app\" -Recurse -Include \"*.ts\",\"*.tsx\")"
     ]
   }
 }

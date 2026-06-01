@@ -98,6 +98,15 @@ export class AdminComponent implements OnInit {
     { id: 'timeoff' as const, label: 'Odsustva i zatvaranje lokala', icon: '🏖️' },
   ];
 
+  private readonly BARBER1_DEFAULT_BREAKS = [
+    { start: '13:45', end: '14:00' },
+    { start: '14:45', end: '15:00' },
+    { start: '15:45', end: '16:00' },
+    { start: '16:45', end: '17:00' },
+    { start: '17:45', end: '18:00' },
+    { start: '18:45', end: '19:00' },
+  ];
+
   async ngOnInit() {
     this.timeOptions = this.bs.getTimeOptions();
     await this.bs.loadAll();
@@ -221,7 +230,7 @@ export class AdminComponent implements OnInit {
     const firstIso = Array.from(selected).sort()[0];
     const existing = this.currentBarber()?.schedule.workDays[firstIso];
 
-    this.editIso = '';
+    this.editIso = firstIso;
     this.editIsNew = false;
     if (existing) {
       this.editForm = {
@@ -232,7 +241,10 @@ export class AdminComponent implements OnInit {
         breaks: JSON.parse(JSON.stringify(existing.breaks || [])),
       };
     } else {
-      this.editForm = { active: true, start: '12:00', end: '20:00', duration: null, breaks: [] };
+      const defaultBreaks = this.currentBarber()?.id === 1
+        ? JSON.parse(JSON.stringify(this.BARBER1_DEFAULT_BREAKS))
+        : [];
+      this.editForm = { active: true, start: '12:00', end: '20:00', duration: null, breaks: defaultBreaks };
     }
     this.showDayModal.set(true);
   }
@@ -283,7 +295,10 @@ export class AdminComponent implements OnInit {
         breaks: JSON.parse(JSON.stringify(existing.breaks || [])),
       };
     } else {
-      this.editForm = { active: true, start: '12:00', end: '20:00', duration: null, breaks: [] };
+      const defaultBreaks = this.currentBarber()?.id === 1
+        ? JSON.parse(JSON.stringify(this.BARBER1_DEFAULT_BREAKS))
+        : [];
+      this.editForm = { active: true, start: '12:00', end: '20:00', duration: null, breaks: defaultBreaks };
     }
     this.showDayModal.set(true);
   }
@@ -292,7 +307,10 @@ export class AdminComponent implements OnInit {
     this.clearSelection();
     this.editIso = '';
     this.editIsNew = true;
-    this.editForm = { active: true, start: '12:00', end: '20:00', duration: null, breaks: [] };
+    const defaultBreaks = this.currentBarber()?.id === 1
+      ? JSON.parse(JSON.stringify(this.BARBER1_DEFAULT_BREAKS))
+      : [];
+    this.editForm = { active: true, start: '12:00', end: '20:00', duration: null, breaks: defaultBreaks };
     this.showDayModal.set(true);
   }
 

@@ -36,7 +36,7 @@ export class BookingService {
 
   /** Create a new appointment */
   async createAppointment(
-    data: Omit<Appointment, 'id' | 'createdAt'>,
+    data: Omit<Appointment, 'id' | 'createdAt' | 'userId'>,
     skipEmail = false,
   ): Promise<Appointment | null> {
     console.log('[BookingService] createAppointment START', { data, skipEmail });
@@ -142,8 +142,11 @@ export class BookingService {
     return aptDate.getTime() - now.getTime() > 2 * 60 * 60 * 1000;
   }
 
-  getUserAppointments(email: string): Appointment[] {
-    return this.appointments().filter((a) => a.userEmail.toLowerCase() === email.toLowerCase());
+  getUserAppointments(email: string, userId?: string | null): Appointment[] {
+    return this.appointments().filter((a) => {
+      if (userId && a.userId) return a.userId === userId;
+      return a.userEmail.toLowerCase() === email.toLowerCase();
+    });
   }
 
   getBarberAppointments(barberId: number): Appointment[] {
@@ -213,6 +216,7 @@ export class BookingService {
       userName: row.user_name,
       userEmail: row.user_email,
       userPhone: row.user_phone,
+      userId: row.user_id ?? null,
       createdAt: new Date(row.created_at),
     };
   }

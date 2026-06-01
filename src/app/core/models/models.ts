@@ -74,6 +74,7 @@ export interface Appointment {
   userName: string;
   userEmail: string;
   userPhone: string;
+  userId: string | null;
   createdAt: Date;
 }
 
