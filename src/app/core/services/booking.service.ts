@@ -14,20 +14,44 @@ export class BookingService {
   private email = inject(EmailService);
   private barberSvc = inject(BarberService);
 
-  constructor() {
-    this.loadAppointments();
-  }
-
-  /** Load all confirmed appointments */
-  async loadAppointments(): Promise<void> {
+  /** Load appointments scoped to a barber and date range */
+  async loadAppointmentsForBarber(barberId: number, fromIso: string, toIso: string): Promise<void> {
     const { data, error } = await this.supa
       .from('appointments')
       .select('*')
       .eq('status', 'confirmed')
+      .eq('barber_id', barberId)
+      .gte('appointment_date', fromIso)
+      .lte('appointment_date', toIso)
       .order('appointment_date', { ascending: true });
 
     if (error) {
       console.error('Failed to load appointments:', error);
+      return;
+    }
+
+    this.appointments.set((data || []).map((row) => this.mapRow(row)));
+  }
+
+  /** Load upcoming appointments for a specific user (by id if available, email otherwise) */
+  async loadUserAppointments(userId: string | null, email: string): Promise<void> {
+    const todayIso = this.barberSvc.toIsoDate(new Date());
+
+    let query = this.supa
+      .from('appointments')
+      .select('*')
+      .eq('status', 'confirmed')
+      .gte('appointment_date', todayIso)
+      .order('appointment_date', { ascending: true });
+
+    query = userId
+      ? query.eq('user_id', userId)
+      : query.eq('user_email', email.toLowerCase());
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Failed to load user appointments:', error);
       return;
     }
 
@@ -184,9 +208,6 @@ export class BookingService {
       }
 
       this.toast.success('Termin otkazan. Email potvrda poslata.');
-
-      // Refresh the in-memory list in case the cancelled appointment was loaded
-      await this.loadAppointments();
     } catch (err: any) {
       this.toast.error('Greška pri otkazivanju termina.');
       console.error('cancel via link error:', err);

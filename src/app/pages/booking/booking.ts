@@ -97,6 +97,13 @@ export class BookingComponent implements OnInit {
     this.selectedBarber.set(barber);
     this.selectedServices.set([]);
     this.days = this.barberService.getBookingDaysForBarber(barber.id);
+    if (this.days.length > 0) {
+      this.bookingService.loadAppointmentsForBarber(
+        barber.id,
+        this.days[0].isoDate,
+        this.days[this.days.length - 1].isoDate,
+      );
+    }
     this.step.set(2);
     window.scrollTo(0, 0);
   }

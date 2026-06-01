@@ -38,7 +38,7 @@
       <button
         class="tab-btn"
         [class.active]="activeTab() === tab.id"
-        (click)="activeTab.set(tab.id)"
+        (click)="switchTab(tab.id)"
       >
         <span class="tab-icon">{{ tab.icon }}</span>
         <span class="tab-label">{{ tab.label }}</span>
@@ -229,7 +229,7 @@
             class="input-field apt-date-picker"
             type="date"
             [ngModel]="appointmentViewDate()"
-            (ngModelChange)="appointmentViewDate.set($event)"
+            (ngModelChange)="appointmentViewDate.set($event); loadAdminAppointments()"
           />
         </div>
         <button class="month-arrow" (click)="nextAppointmentDay()">→</button>

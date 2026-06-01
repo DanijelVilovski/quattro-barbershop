@@ -473,6 +473,18 @@ export class AdminComponent implements OnInit {
     this.toast.success('Uklonjeno.');
   }
 
+  switchTab(tab: 'calendar' | 'schedule' | 'appointments' | 'timeoff') {
+    this.activeTab.set(tab);
+    if (tab === 'appointments') this.loadAdminAppointments();
+  }
+
+  loadAdminAppointments() {
+    const barber = this.currentBarber();
+    if (!barber) return;
+    const iso = this.appointmentViewDate();
+    this.bookingService.loadAppointmentsForBarber(barber.id, iso, iso);
+  }
+
   // ══════ APPOINTMENTS ══════
   getAppointmentDaySlots(): string[] {
     const barber = this.currentBarber();
@@ -588,12 +600,14 @@ export class AdminComponent implements OnInit {
     const d = new Date(this.appointmentViewDate() + 'T00:00:00');
     d.setDate(d.getDate() - 1);
     this.appointmentViewDate.set(this.bs.toIsoDate(d));
+    this.loadAdminAppointments();
   }
 
   nextAppointmentDay() {
     const d = new Date(this.appointmentViewDate() + 'T00:00:00');
     d.setDate(d.getDate() + 1);
     this.appointmentViewDate.set(this.bs.toIsoDate(d));
+    this.loadAdminAppointments();
   }
 
   // ══════ HELPERS ══════
