@@ -63,12 +63,7 @@ export class BookingService {
     data: Omit<Appointment, 'id' | 'createdAt' | 'userId'>,
     skipEmail = false,
   ): Promise<Appointment | null> {
-    console.log('[BookingService] createAppointment START', { data, skipEmail });
-
-    // Get current user ID if logged in
-    console.log('[BookingService] fetching current user...');
     const currentUser = await this.supa.getUser();
-    console.log('[BookingService] current user:', currentUser ? { id: currentUser.id, email: currentUser.email } : null);
 
     const isoDate = this.displayToIso(data.date);
     const insertPayload = {
@@ -82,7 +77,6 @@ export class BookingService {
       user_phone: data.userPhone,
       user_id: currentUser?.id || null,
     };
-    console.log('[BookingService] inserting row:', insertPayload);
 
     const { data: row, error } = await this.supa
       .from('appointments')
@@ -96,18 +90,13 @@ export class BookingService {
       return null;
     }
 
-    console.log('[BookingService] DB insert success, raw row:', row);
-
     const appointment = this.mapRow(row);
-    console.log('[BookingService] mapped appointment:', appointment);
-
     this.appointments.update((list) => [...list, appointment]);
     this.toast.success('Termin zakazan!');
 
     if (!skipEmail) {
       const barberName = this.getBarberName(data.barberId);
       const cancelUrl = `${window.location.origin}/cancel-appointment?token=${row.cancel_token}`;
-      console.log('[BookingService] sending confirmation email to:', data.userEmail, { barberName, cancelUrl, cancelToken: row.cancel_token });
       this.email.sendAppointmentConfirmation(data.userEmail, {
         barber: barberName,
         date: data.date,
@@ -116,11 +105,8 @@ export class BookingService {
         price: data.totalPrice,
         cancelUrl,
       });
-    } else {
-      console.log('[BookingService] skipEmail=true, skipping confirmation email');
     }
 
-    console.log('[BookingService] createAppointment END, returning appointment id:', appointment.id);
     return appointment;
   }
 
