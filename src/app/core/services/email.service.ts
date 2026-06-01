@@ -6,13 +6,18 @@ export class EmailService {
   private supa = inject(SupabaseService);
 
   private async send(type: string, to: string, data: Record<string, any>): Promise<void> {
+    console.log('[EmailService] send START', { type, to, data });
     try {
-      const { error } = await this.supa.client.functions.invoke('send-email', {
+      const { data: result, error } = await this.supa.client.functions.invoke('send-email', {
         body: { type, to, data },
       });
-      if (error) console.error('Email send error:', error);
+      if (error) {
+        console.error('[EmailService] edge function error:', { type, to, error });
+      } else {
+        console.log('[EmailService] send SUCCESS', { type, to, result });
+      }
     } catch (err) {
-      console.error('Email service error:', err);
+      console.error('[EmailService] unexpected error:', { type, to, err });
     }
   }
 

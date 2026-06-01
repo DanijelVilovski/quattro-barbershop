@@ -39,45 +39,64 @@ export class BookingService {
     data: Omit<Appointment, 'id' | 'createdAt'>,
     skipEmail = false,
   ): Promise<Appointment | null> {
+    console.log('[BookingService] createAppointment START', { data, skipEmail });
+
     // Get current user ID if logged in
+    console.log('[BookingService] fetching current user...');
     const currentUser = await this.supa.getUser();
+    console.log('[BookingService] current user:', currentUser ? { id: currentUser.id, email: currentUser.email } : null);
+
+    const isoDate = this.displayToIso(data.date);
+    const insertPayload = {
+      barber_id: data.barberId,
+      appointment_date: isoDate,
+      appointment_time: data.time,
+      services: data.services,
+      total_price: data.totalPrice,
+      user_name: data.userName,
+      user_email: data.userEmail,
+      user_phone: data.userPhone,
+      user_id: currentUser?.id || null,
+    };
+    console.log('[BookingService] inserting row:', insertPayload);
 
     const { data: row, error } = await this.supa
       .from('appointments')
-      .insert({
-        barber_id: data.barberId,
-        appointment_date: this.displayToIso(data.date),
-        appointment_time: data.time,
-        services: data.services,
-        total_price: data.totalPrice,
-        user_name: data.userName,
-        user_email: data.userEmail,
-        user_phone: data.userPhone,
-        user_id: currentUser?.id || null,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
     if (error) {
+      console.error('[BookingService] DB insert error:', { code: error.code, message: error.message, details: error.details, hint: error.hint });
       this.toast.error('Greška pri zakazivanju: ' + error.message);
       return null;
     }
 
+    console.log('[BookingService] DB insert success, raw row:', row);
+
     const appointment = this.mapRow(row);
+    console.log('[BookingService] mapped appointment:', appointment);
+
     this.appointments.update((list) => [...list, appointment]);
     this.toast.success('Termin zakazan!');
 
     if (!skipEmail) {
+      const barberName = this.getBarberName(data.barberId);
+      const cancelUrl = `${window.location.origin}/cancel-appointment?token=${row.cancel_token}`;
+      console.log('[BookingService] sending confirmation email to:', data.userEmail, { barberName, cancelUrl, cancelToken: row.cancel_token });
       this.email.sendAppointmentConfirmation(data.userEmail, {
-        barber: this.getBarberName(data.barberId),
+        barber: barberName,
         date: data.date,
         time: data.time,
         services: data.services.join(', '),
         price: data.totalPrice,
-        cancelUrl: `${window.location.origin}/cancel-appointment?token=${row.cancel_token}`,
+        cancelUrl,
       });
+    } else {
+      console.log('[BookingService] skipEmail=true, skipping confirmation email');
     }
 
+    console.log('[BookingService] createAppointment END, returning appointment id:', appointment.id);
     return appointment;
   }
 
