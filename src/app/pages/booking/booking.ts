@@ -189,7 +189,7 @@ export class BookingComponent implements OnInit {
 
     this.isSubmitting.set(true);
     try {
-      await this.bookingService.createAppointment({
+      const created = await this.bookingService.createAppointment({
         barberId: barber.id,
         date: day.dateStr,
         time: this.selectedTime()!,
@@ -201,6 +201,19 @@ export class BookingComponent implements OnInit {
         userEmail: email,
         userPhone: this.formTelefon,
       });
+
+      if (!created) {
+        // Booking failed (slot taken meanwhile) — refresh availability and go back to time picking
+        await this.bookingService.loadAppointmentsForBarber(
+          barber.id,
+          this.days[0].isoDate,
+          this.days[this.days.length - 1].isoDate,
+        );
+        this.selectedTime.set(null);
+        this.step.set(3);
+        window.scrollTo(0, 0);
+        return;
+      }
 
       this.router.navigate([this.auth.isLoggedIn() ? '/my-appointments' : '/home']);
     } finally {

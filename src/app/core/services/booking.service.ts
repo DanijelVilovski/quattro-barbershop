@@ -27,6 +27,7 @@ export class BookingService {
 
     if (error) {
       console.error('Failed to load appointments:', error);
+      this.toast.error('Greška pri učitavanju termina. Osvežite stranicu.');
       return;
     }
 
@@ -52,6 +53,7 @@ export class BookingService {
 
     if (error) {
       console.error('Failed to load user appointments:', error);
+      this.toast.error('Greška pri učitavanju termina. Osvežite stranicu.');
       return;
     }
 
@@ -86,7 +88,12 @@ export class BookingService {
 
     if (error) {
       console.error('[BookingService] DB insert error:', { code: error.code, message: error.message, details: error.details, hint: error.hint });
-      this.toast.error('Greška pri zakazivanju: ' + error.message);
+      // 23505 = slot already taken (appointments_confirmed_slot_uniq)
+      this.toast.error(
+        error.code === '23505'
+          ? 'Izabrani termin nije dostupan. Izaberite drugo vreme.'
+          : 'Greška pri zakazivanju: ' + error.message,
+      );
       return null;
     }
 

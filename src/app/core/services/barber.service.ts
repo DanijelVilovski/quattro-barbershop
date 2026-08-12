@@ -13,6 +13,7 @@ import {
   TimeOffReason,
 } from '../models/models';
 import { SupabaseService } from './supabase.service';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class BarberService {
@@ -79,7 +80,13 @@ export class BarberService {
   barbers = signal<Barber[]>([]);
   shopClosures = signal<ShopClosure[]>([]);
 
-  constructor(private supa: SupabaseService) {
+  private loaded = false;
+  private loadPromise: Promise<void> | null = null;
+
+  constructor(
+    private supa: SupabaseService,
+    private toast: ToastService,
+  ) {
     this.loadAll();
   }
 
@@ -87,20 +94,49 @@ export class BarberService {
   //  DATA LOADING
   // ════════════════════════════════
 
-  async loadAll(): Promise<void> {
+  /**
+   * Load barbers, schedules and closures once.
+   * Concurrent callers share one in-flight request; later calls are a no-op.
+   * Mutations refresh their own slice via loadBarbers/loadShopClosures.
+   */
+  loadAll(): Promise<void> {
+    if (this.loaded) return Promise.resolve();
+    if (this.loadPromise) return this.loadPromise;
+
+    this.loadPromise = this.fetchAll()
+      .then(() => {
+        this.loaded = true;
+      })
+      .catch((err) => {
+        console.error('[BarberService] load failed:', err);
+        this.toast.error('Greška pri učitavanju podataka. Osvežite stranicu.');
+      })
+      .finally(() => {
+        this.loadPromise = null;
+      });
+
+    return this.loadPromise;
+  }
+
+  private async fetchAll(): Promise<void> {
     await Promise.all([this.loadBarbers(), this.loadShopClosures()]);
   }
 
   private async loadBarbers(): Promise<void> {
     // Load barbers
-    const { data: barberRows } = await this.supa.from('barbers').select('*').order('id');
+    const { data: barberRows, error: barbersError } = await this.supa
+      .from('barbers')
+      .select('*')
+      .order('id');
+    if (barbersError) throw barbersError;
     if (!barberRows) return;
 
     // Load profiles linked to barbers
-    const { data: profileRows } = await this.supa
+    const { data: profileRows, error: profilesError } = await this.supa
       .from('profiles')
       .select('first_name, last_name, barber_id')
       .not('barber_id', 'is', null);
+    if (profilesError) throw profilesError;
 
     const barberIds = barberRows.map((b) => b.id);
 
@@ -108,6 +144,8 @@ export class BarberService {
       this.supa.from('barber_work_days').select('*').in('barber_id', barberIds).order('work_date'),
       this.supa.from('barber_time_off').select('*').in('barber_id', barberIds).order('start_date'),
     ]);
+    if (workDaysRes.error) throw workDaysRes.error;
+    if (timeOffRes.error) throw timeOffRes.error;
 
     const barbers: Barber[] = barberRows.map((row, index) => {
       const profile = (profileRows || []).find((p) => p.barber_id === row.id);
@@ -155,7 +193,11 @@ export class BarberService {
   }
 
   private async loadShopClosures(): Promise<void> {
-    const { data } = await this.supa.from('shop_closures').select('*').order('closure_date');
+    const { data, error } = await this.supa
+      .from('shop_closures')
+      .select('*')
+      .order('closure_date');
+    if (error) throw error;
 
     this.shopClosures.set(
       (data || []).map((row) => ({

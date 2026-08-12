@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -23,7 +23,7 @@ import {
   templateUrl: './admin.html',
   styleUrl: './admin.scss',
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, OnDestroy {
   bs = inject(BarberService);
   auth = inject(AuthService);
   bookingService = inject(BookingService);
@@ -81,6 +81,15 @@ export class AdminComponent implements OnInit {
   newClosure = { date: '', reason: '' };
 
   // Appointments tab
+  loadingAppointments = signal(false);
+  /** Appointments can be cancelled elsewhere (email link), so poll while the tab is open */
+  private readonly APPOINTMENT_POLL_MS = 30_000;
+  private pollHandle: ReturnType<typeof setInterval> | null = null;
+  private onVisible = () => {
+    if (document.visibilityState === 'visible' && this.activeTab() === 'appointments') {
+      this.loadAdminAppointments(true);
+    }
+  };
   appointmentViewDate = signal(this.bs.toIsoDate(new Date()));
   selectedAppointment = signal<Appointment | null>(null);
   bookingSlot = signal<string | null>(null);
@@ -113,13 +122,27 @@ export class AdminComponent implements OnInit {
     const barbers = this.bs.barbers();
     const user = this.auth.currentUser();
     const match = barbers.find((b) => b.id === user?.barberId);
-    this.currentBarber.set(match ?? barbers[0]);
+    if (!match) {
+      this.toast.error('Vaš nalog nije povezan sa barberom. Obratite se administratoru.');
+      return;
+    }
+    this.currentBarber.set(match);
     await this.refresh();
+    document.addEventListener('visibilitychange', this.onVisible);
+    window.addEventListener('focus', this.onVisible);
   }
 
-  /** Refresh all computed views */
+  ngOnDestroy() {
+    document.removeEventListener('visibilitychange', this.onVisible);
+    window.removeEventListener('focus', this.onVisible);
+    this.stopPolling();
+  }
+
+  /**
+   * Rebuild all computed views. No fetch here — the BarberService mutations
+   * already reload the slice they changed.
+   */
   private async refresh() {
-    await this.bs.loadAll();
     const barber = this.currentBarber();
     if (!barber) return;
 
@@ -475,14 +498,44 @@ export class AdminComponent implements OnInit {
 
   switchTab(tab: 'calendar' | 'schedule' | 'appointments' | 'timeoff') {
     this.activeTab.set(tab);
-    if (tab === 'appointments') this.loadAdminAppointments();
+    if (tab === 'appointments') {
+      this.loadAdminAppointments();
+      this.startPolling();
+    } else {
+      this.stopPolling();
+    }
   }
 
-  loadAdminAppointments() {
+  /** `silent` skips the loading placeholder, so background refreshes don't blank the grid */
+  async loadAdminAppointments(silent = false) {
     const barber = this.currentBarber();
     if (!barber) return;
     const iso = this.appointmentViewDate();
-    this.bookingService.loadAppointmentsForBarber(barber.id, iso, iso);
+    if (!silent) this.loadingAppointments.set(true);
+    try {
+      await this.bookingService.loadAppointmentsForBarber(barber.id, iso, iso);
+      // The open detail modal may point at an appointment cancelled elsewhere
+      const open = this.selectedAppointment();
+      if (open && !this.bookingService.appointments().some((a) => a.id === open.id)) {
+        this.selectedAppointment.set(null);
+      }
+    } finally {
+      if (!silent) this.loadingAppointments.set(false);
+    }
+  }
+
+  private startPolling() {
+    this.stopPolling();
+    this.pollHandle = setInterval(() => {
+      if (!this.loadingAppointments()) this.loadAdminAppointments(true);
+    }, this.APPOINTMENT_POLL_MS);
+  }
+
+  private stopPolling() {
+    if (this.pollHandle) {
+      clearInterval(this.pollHandle);
+      this.pollHandle = null;
+    }
   }
 
   // ══════ APPOINTMENTS ══════
@@ -578,6 +631,10 @@ export class AdminComponent implements OnInit {
 
       if (result) {
         this.bookingSlot.set(null);
+      } else {
+        // Booking failed (slot taken meanwhile) — close the form and refresh so the conflict is visible
+        this.bookingSlot.set(null);
+        await this.loadAdminAppointments();
       }
     } finally {
       this.submittingBooking.set(false);

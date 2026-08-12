@@ -5,7 +5,24 @@
       "Bash(Get-ChildItem -Path \"C:\\\\users\\\\daniv\\\\source\\\\repos\\\\quattro-barbershop\" -Recurse -Directory)",
       "Bash(Select-Object FullName)",
       "PowerShell(head *)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\daniv\\\\source\\\\repos\\\\quattro-barbershop\\\\src\\\\app\" -Recurse -Include \"*.ts\",\"*.tsx\")"
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\daniv\\\\source\\\\repos\\\\quattro-barbershop\\\\src\\\\app\" -Recurse -Include \"*.ts\",\"*.tsx\")",
+      "Bash(git check-ignore *)",
+      "Bash(curl -s 'https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/profiles?select=first_name,role,barber_id&role=eq.admin' -H 'apikey: sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Authorization: Bearer sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU')",
+      "Bash(curl -s https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/barbers?select=id,global_duration -H 'apikey: sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Authorization: Bearer sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU')",
+      "Bash(curl -s 'https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/barber_work_days?select=barber_id,work_date&order=work_date.desc&limit=4' -H 'apikey: sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Authorization: Bearer sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU')",
+      "Bash(npx ng *)",
+      "Bash(curl -s 'https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/barber_work_days?select=*&order=work_date.asc' -H 'apikey: sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Authorization: Bearer sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU')",
+      "Bash(gzip -c)",
+      "Bash(curl -s 'https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/appointments?select=barber_id,appointment_date,appointment_time,user_name,status&status=eq.confirmed' -H 'apikey: __TRACKED_VAR__' -H 'Authorization: Bearer __TRACKED_VAR__' -o /tmp/apts.json)",
+      "Bash(curl -s 'https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/appointments?select=barber_id,appointment_date,appointment_time,user_name,created_at&status=eq.confirmed' -H 'apikey: sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Authorization: Bearer sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -o C:/Users/daniv/AppData/Local/Temp/claude/C--Users-daniv-source-repos-quattro-barbershop/799e9939-3237-4860-95cc-784c3a8ea82f/scratchpad/apts.json)",
+      "Bash(curl -s 'https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/appointments?select=appointment_date,appointment_time,user_name,created_at&status=eq.confirmed&created_at=gte.2026-08-12T07:00:00Z&order=created_at.asc' -H 'apikey: sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Authorization: Bearer sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU')",
+      "Bash(curl -s -I 'https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/appointments?select=id&status=eq.cancelled' -H 'apikey: sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Authorization: Bearer sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Prefer: count=exact' -H 'Range: 0-0')",
+      "Bash(curl -s 'https://fwhuipombndvqulkdcno.supabase.co/rest/v1/profiles?select=first_name,role,barber_id&role=eq.admin' -H 'apikey: sb_publishable_g9HeRbWF83xzB9Acb742hw_t41vJJux' -H 'Authorization: Bearer sb_publishable_g9HeRbWF83xzB9Acb742hw_t41vJJux')",
+      "Bash(curl -s https://fwhuipombndvqulkdcno.supabase.co/rest/v1/barbers?select=id,global_duration -H 'apikey: sb_publishable_g9HeRbWF83xzB9Acb742hw_t41vJJux' -H 'Authorization: Bearer sb_publishable_g9HeRbWF83xzB9Acb742hw_t41vJJux')",
+      "Bash(curl -s 'https://fwhuipombndvqulkdcno.supabase.co/rest/v1/barber_work_days?select=barber_id,active,start_time,end_time&work_date=eq.2026-08-12' -H 'apikey: sb_publishable_g9HeRbWF83xzB9Acb742hw_t41vJJux' -H 'Authorization: Bearer sb_publishable_g9HeRbWF83xzB9Acb742hw_t41vJJux')",
+      "Bash(curl -s 'https://fwhuipombndvqulkdcno.supabase.co/rest/v1/appointments?select=id,barber_id,appointment_time,user_name,status&appointment_date=eq.2026-08-12&status=eq.confirmed' -H 'apikey: sb_publishable_g9HeRbWF83xzB9Acb742hw_t41vJJux' -H 'Authorization: Bearer sb_publishable_g9HeRbWF83xzB9Acb742hw_t41vJJux')",
+      "Bash(curl -s 'https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/profiles?select=id,first_name,last_name,phone,barber_id,created_at&role=eq.admin&order=created_at.asc' -H 'apikey: sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Authorization: Bearer sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU')",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' https://mwltlxtabdukhyyprdaq.supabase.co/rest/v1/users?select=id -H 'apikey: sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU' -H 'Authorization: Bearer sb_publishable_LQoCzKWXG9cDsoe0fWp1qQ_-bWyHnFU')"
     ]
   }
 }

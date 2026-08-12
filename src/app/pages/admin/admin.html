@@ -236,7 +236,9 @@
       </div>
 
       <!-- Slot grid -->
-      @if (getAppointmentDaySlots().length === 0) {
+      @if (loadingAppointments()) {
+        <div class="empty-card">Učitavanje termina…</div>
+      } @else if (getAppointmentDaySlots().length === 0) {
         <div class="empty-card">Nema konfigurisanih termina za ovaj dan</div>
       } @else {
         <div class="apt-slots-grid">
